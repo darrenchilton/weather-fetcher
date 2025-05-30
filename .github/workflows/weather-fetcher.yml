@@ -1,0 +1,40 @@
+name: Weather Data Fetcher
+
+on:
+  schedule:
+    # Run every 6 hours (at 00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  fetch-weather:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run weather fetcher
+      env:
+        WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      run: python weather_fetcher.py
