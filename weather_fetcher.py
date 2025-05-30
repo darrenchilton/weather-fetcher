@@ -6,25 +6,38 @@ from typing import Dict, List, Optional, Union
 import time
 import json
 import traceback
+import sys
 from dotenv import load_dotenv
 load_dotenv() 
 
-log_path = os.path.join('/Users/plex/Projects/weather_fetcher', 'output.log')
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s - %(context)s',
-    handlers=[
-        logging.FileHandler(log_path),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# GitHub Actions compatible logging setup
+def setup_logging():
+    """Setup logging configuration optimized for GitHub Actions"""
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+    
+    handlers = [logging.StreamHandler(sys.stdout)]
+    
+    # Only add file handler if we're running locally (not in GitHub Actions)
+    if not os.getenv('GITHUB_ACTIONS'):
+        log_path = os.path.join('/Users/plex/Projects/weather_fetcher', 'output.log')
+        if os.path.exists(os.path.dirname(log_path)):
+            handlers.append(logging.FileHandler(log_path))
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format=log_format,
+        handlers=handlers
+    )
+    
+    return logging.getLogger(__name__)
+
+logger = setup_logging()
 
 class WeatherDataFetcher:
     def __init__(self):
         self.api_key = os.getenv('WEATHER_API_KEY')
         self.base_url = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
-        logger.info("Initialized WeatherDataFetcher", extra={'context': 'Initialization'})
+        logger.info("Initialized WeatherDataFetcher")
 
     def fetch_weather_data(self, location: str) -> Optional[Dict]:
         end_date = datetime.now() + timedelta(days=15)
@@ -38,17 +51,16 @@ class WeatherDataFetcher:
         url = f"{self.base_url}/{location}/{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
         
         try:
-            logger.info(f"Fetching data from URL: {url}", extra={'context': 'Data Retrieval'})
+            logger.info(f"Fetching data from URL: {url}")
             response = requests.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-            logger.info(f"Successfully fetched weather data for {location} ({len(data.get('days', []))} days)", 
-                       extra={'context': 'Data Retrieval'})
+            logger.info(f"Successfully fetched weather data for {location} ({len(data.get('days', []))} days)")
             return data
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching weather data: {e}", extra={'context': 'Data Retrieval Error'})
+            logger.error(f"Error fetching weather data: {e}")
             if hasattr(response, 'text'):
-                logger.error(f"API Response: {response.text}", extra={'context': 'API Error'})
+                logger.error(f"API Response: {response.text}")
             raise
 
 class AirtableAPI:
@@ -61,7 +73,7 @@ class AirtableAPI:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        logger.info("Initialized Airtable API", extra={'context': 'Initialization'})
+        logger.info("Initialized Airtable API")
 
     def get_existing_records(self) -> Dict[str, Dict]:
         existing_records = {}
@@ -82,12 +94,10 @@ class AirtableAPI:
                     time.sleep(0.2)
                 else:
                     break
-            logger.info(f"Found {len(existing_records)} existing records", 
-                       extra={'context': 'Data Retrieval'})
+            logger.info(f"Found {len(existing_records)} existing records")
             return existing_records
         except Exception as e:
-            logger.error(f"Error fetching existing records: {e}", 
-                        extra={'context': 'Data Retrieval Error'})
+            logger.error(f"Error fetching existing records: {e}")
             raise
 
     def prepare_airtable_records(self, raw_data: Dict) -> List[Dict]:
@@ -143,15 +153,15 @@ class AirtableAPI:
                 records.append({'fields': cleaned_fields})
             
             if records:
-                logger.info(f"Prepared {len(records)} records", extra={'context': 'Data Preparation'})
+                logger.info(f"Prepared {len(records)} records")
             return records
         except Exception as e:
-            logger.error(f"Error preparing records: {e}", extra={'context': 'Data Preparation Error'})
+            logger.error(f"Error preparing records: {e}")
             raise
 
     def push_records(self, new_records: List[Dict], existing_records: Dict[str, Dict]) -> bool:
         if not new_records:
-            logger.info("No records to process", extra={'context': 'Data Update'})
+            logger.info("No records to process")
             return True
 
         records_to_create = []
@@ -170,12 +180,10 @@ class AirtableAPI:
 
         success = True
         if records_to_create:
-            logger.info(f"Creating {len(records_to_create)} new records", 
-                       extra={'context': 'Data Creation'})
+            logger.info(f"Creating {len(records_to_create)} new records")
             success = success and self._batch_create(records_to_create)
         if records_to_update:
-            logger.info(f"Updating {len(records_to_update)} existing records", 
-                       extra={'context': 'Data Update'})
+            logger.info(f"Updating {len(records_to_update)} existing records")
             success = success and self._batch_update(records_to_update)
         return success
 
@@ -186,12 +194,10 @@ class AirtableAPI:
             existing_value = existing_fields[key]
             if isinstance(new_value, (int, float)) and isinstance(existing_value, (int, float)):
                 if abs(float(new_value) - float(existing_value)) > 0.0001:
-                    logger.info(f"Field {key} changed from {existing_value} to {new_value}", 
-                              extra={'context': 'Data Comparison'})
+                    logger.info(f"Field {key} changed from {existing_value} to {new_value}")
                     return True
             elif new_value != existing_value:
-                logger.info(f"Field {key} changed from {existing_value} to {new_value}", 
-                          extra={'context': 'Data Comparison'})
+                logger.info(f"Field {key} changed from {existing_value} to {new_value}")
                 return True
         return False
 
@@ -203,12 +209,10 @@ class AirtableAPI:
             try:
                 response = requests.post(self.weather_api_url, headers=self.headers, json=payload)
                 response.raise_for_status()
-                logger.info(f"Created batch {i//batch_size + 1} ({len(batch)} records)", 
-                          extra={'context': 'Batch Creation'})
+                logger.info(f"Created batch {i//batch_size + 1} ({len(batch)} records)")
                 time.sleep(0.2)
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error creating batch {i//batch_size + 1}: {e}", 
-                           extra={'context': 'Batch Creation Error'})
+                logger.error(f"Error creating batch {i//batch_size + 1}: {e}")
                 success = False
                 break
         return success
@@ -221,12 +225,10 @@ class AirtableAPI:
             try:
                 response = requests.patch(self.weather_api_url, headers=self.headers, json=payload)
                 response.raise_for_status()
-                logger.info(f"Updated batch {i//batch_size + 1} ({len(batch)} records)", 
-                          extra={'context': 'Batch Update'})
+                logger.info(f"Updated batch {i//batch_size + 1} ({len(batch)} records)")
                 time.sleep(0.2)
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error updating batch {i//batch_size + 1}: {e}", 
-                           extra={'context': 'Batch Update Error'})
+                logger.error(f"Error updating batch {i//batch_size + 1}: {e}")
                 success = False
                 break
         return success
@@ -236,60 +238,64 @@ def main():
     airtable = AirtableAPI()
 
     try:
-        logger.info("Starting weather data fetch and update process", 
-                   extra={'context': 'Process Start'})
+        logger.info("Starting weather data fetch and update process")
         location = "12439"
-        logger.info(f"Fetching weather data for location: {location}", 
-                   extra={'context': 'Data Retrieval'})
+        logger.info(f"Fetching weather data for location: {location}")
 
         try:
             raw_data = fetcher.fetch_weather_data(location)
         except Exception as e:
-            logger.error(f"Failed to fetch weather data: {e}", 
-                        extra={'context': 'Data Retrieval Error'})
-            return
+            logger.error(f"Failed to fetch weather data: {e}")
+            if os.getenv('GITHUB_ACTIONS'):
+                print(f"::error title=Weather Fetch Failed::{str(e)}")
+            sys.exit(1)
 
         if raw_data:
             try:
                 existing_records = airtable.get_existing_records()
-                logger.info(f"Retrieved {len(existing_records)} existing records", 
-                          extra={'context': 'Data Comparison'})
+                logger.info(f"Retrieved {len(existing_records)} existing records")
             except Exception as e:
-                logger.error(f"Failed to retrieve existing records: {e}", 
-                           extra={'context': 'Data Retrieval Error'})
-                return
+                logger.error(f"Failed to retrieve existing records: {e}")
+                if os.getenv('GITHUB_ACTIONS'):
+                    print(f"::error title=Airtable Access Failed::{str(e)}")
+                sys.exit(1)
 
             try:
                 all_records = airtable.prepare_airtable_records(raw_data)
-                logger.info(f"Prepared {len(all_records)} records for update", 
-                          extra={'context': 'Data Preparation'})
+                logger.info(f"Prepared {len(all_records)} records for update")
             except Exception as e:
-                logger.error(f"Failed to prepare records: {e}", 
-                           extra={'context': 'Data Preparation Error'})
-                return
+                logger.error(f"Failed to prepare records: {e}")
+                if os.getenv('GITHUB_ACTIONS'):
+                    print(f"::error title=Data Preparation Failed::{str(e)}")
+                sys.exit(1)
 
             try:
                 success = airtable.push_records(all_records, existing_records)
                 if success:
-                    logger.info(f"Successfully processed {len(all_records)} records", 
-                              extra={'context': 'Data Update'})
+                    logger.info(f"Successfully processed {len(all_records)} records")
+                    if os.getenv('GITHUB_ACTIONS'):
+                        print(f"::notice title=Weather Fetch Complete::Successfully processed {len(all_records)} records")
                 else:
-                    logger.error("Some errors occurred during processing", 
-                               extra={'context': 'Data Update Error'})
+                    logger.error("Some errors occurred during processing")
+                    if os.getenv('GITHUB_ACTIONS'):
+                        print(f"::warning title=Partial Success::Some errors occurred during processing")
             except Exception as e:
-                logger.error(f"Failed to push records: {e}", 
-                           extra={'context': 'Data Update Error'})
-                return
+                logger.error(f"Failed to push records: {e}")
+                if os.getenv('GITHUB_ACTIONS'):
+                    print(f"::error title=Data Push Failed::{str(e)}")
+                sys.exit(1)
         else:
-            logger.warning("No weather data retrieved", 
-                         extra={'context': 'Data Retrieval Warning'})
+            logger.warning("No weather data retrieved")
+            if os.getenv('GITHUB_ACTIONS'):
+                print(f"::warning title=No Data::No weather data retrieved")
 
     except Exception as e:
-        logger.error(f"Unexpected error in main process: {e}", 
-                    extra={'context': 'Process Error'})
+        logger.error(f"Unexpected error in main process: {e}")
+        if os.getenv('GITHUB_ACTIONS'):
+            print(f"::error title=Process Error::{str(e)}")
+        sys.exit(1)
     finally:
-        logger.info("Completed weather data fetch and update process", 
-                   extra={'context': 'Process Complete'})
+        logger.info("Completed weather data fetch and update process")
 
 if __name__ == "__main__":
     main()
