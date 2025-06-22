@@ -2,12 +2,16 @@ name: Weather Data Fetcher
 
 on:
   schedule:
-    # Run every 6 hours (at 00:00, 06:00, 12:00, 18:00 UTC)
+    # Visual Crossing: Run every 6 hours (at 00:00, 06:00, 12:00, 18:00 UTC)
     - cron: '0 */6 * * *'
+    # Open-Meteo: Run every 6 hours at 30 minutes past (00:30, 06:30, 12:30, 18:30 UTC)
+    - cron: '30 */6 * * *'
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  fetch-weather:
+  fetch-visual-crossing:
+    # Only run this job for the Visual Crossing schedule
+    if: github.event.schedule == '0 */6 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     
     steps:
@@ -32,9 +36,70 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Run weather fetcher
+    - name: Run Visual Crossing weather fetcher
       env:
         WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
         AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
         AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
       run: python weather_fetcher.py
+
+  update-open-meteo:
+    # Only run this job for the Open-Meteo schedule
+    if: github.event.schedule == '30 */6 * * *'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Test Open-Meteo connection
+      run: python openmeteo_fetcher.py
+        
+    - name: Update Airtable with Open-Meteo data
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      run: python update_openmeteo.py
+
+  # Optional: Manual Open-Meteo update job for testing
+  manual-open-meteo:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Manual Open-Meteo update
+      env:
+        AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      run: python update_openmeteo.py
