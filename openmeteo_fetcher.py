@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 from datetime import datetime, timedelta
 import logging
 import os
@@ -30,16 +31,7 @@ class OpenMeteoFetcher:
         params = {
             'latitude': self.lat,
             'longitude': self.lon,
-            'daily': [
-                'temperature_2m_max',
-                'temperature_2m_min', 
-                'temperature_2m_mean',
-                'relative_humidity_2m',
-                'precipitation_sum',
-                'weather_code',
-                'surface_pressure',
-                'wind_speed_10m_max'
-            ],
+            'daily': 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,relative_humidity_2m,precipitation_sum,weather_code,surface_pressure,wind_speed_10m_max',
             'timezone': 'America/New_York',
             'forecast_days': 7
         }
