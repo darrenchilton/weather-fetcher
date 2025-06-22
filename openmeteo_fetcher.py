@@ -30,7 +30,8 @@ class OpenMeteoFetcher:
         params = {
             'latitude': self.lat,
             'longitude': self.lon,
-            'daily': 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,relative_humidity_2m,precipitation_sum,weather_code,surface_pressure,wind_speed_10m_max',
+            'hourly': 'temperature_2m,relative_humidity_2m,precipitation,weather_code,surface_pressure,wind_speed_10m',
+            'daily': 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weather_code,wind_speed_10m_max',
             'timezone': 'America/New_York',
             'forecast_days': 7
         }
@@ -59,40 +60,47 @@ class OpenMeteoFetcher:
         """
         Convert Open-Meteo data to format compatible with Airtable updates
         Returns list of records with datetime keys for matching with existing VC data
+        Uses daily data where available, calculates daily averages from hourly data for other parameters
         """
         records = []
         
         try:
             daily_data = raw_data.get('daily', {})
-            times = daily_data.get('time', [])
+            hourly_data = raw_data.get('hourly', {})
+            daily_times = daily_data.get('time', [])
+            hourly_times = hourly_data.get('time', [])
             
-            if not times:
+            if not daily_times:
                 logger.warning("No daily time data found in Open-Meteo response", 
                              extra={'context': 'OpenMeteo Data Preparation'})
                 return records
             
-            for i, date_str in enumerate(times):
-                # Convert temperature from Celsius to Fahrenheit for comparison
+            for i, date_str in enumerate(daily_times):
+                # Get temperature from daily data (more accurate)
                 temp_c = daily_data.get('temperature_2m_mean', [])[i] if i < len(daily_data.get('temperature_2m_mean', [])) else None
                 temp_f = (temp_c * 9/5) + 32 if temp_c is not None else None
+                
+                # Calculate daily averages from hourly data for humidity and pressure
+                daily_humidity = self._calculate_daily_average(hourly_data, 'relative_humidity_2m', hourly_times, date_str)
+                daily_pressure = self._calculate_daily_average(hourly_data, 'surface_pressure', hourly_times, date_str)
                 
                 # Prepare fields for Airtable update
                 om_fields = {
                     'datetime': date_str,  # This will be used to match existing VC records
                     'om_temp': temp_c,  # Celsius
                     'om_temp_f': temp_f,  # Fahrenheit for comparison
-                    'om_humidity': daily_data.get('relative_humidity_2m', [])[i] if i < len(daily_data.get('relative_humidity_2m', [])) else None,
+                    'om_humidity': daily_humidity,  # Daily average from hourly data
                     'om_precipitation': daily_data.get('precipitation_sum', [])[i] if i < len(daily_data.get('precipitation_sum', [])) else None,
                     'om_weather_code': daily_data.get('weather_code', [])[i] if i < len(daily_data.get('weather_code', [])) else None,
-                    'om_pressure': daily_data.get('surface_pressure', [])[i] if i < len(daily_data.get('surface_pressure', [])) else None,
+                    'om_pressure': daily_pressure,  # Daily average from hourly data
                     'om_wind_speed': daily_data.get('wind_speed_10m_max', [])[i] if i < len(daily_data.get('wind_speed_10m_max', [])) else None,
                     'om_elevation': self.elevation,
                     'om_data_timestamp': datetime.now().isoformat()
                 }
                 
-                # Convert wind speed from m/s to mph
+                # Convert wind speed from km/h to mph (Open-Meteo default is km/h)
                 if om_fields['om_wind_speed'] is not None:
-                    om_fields['om_wind_speed_mph'] = om_fields['om_wind_speed'] * 2.237
+                    om_fields['om_wind_speed_mph'] = om_fields['om_wind_speed'] * 0.621371
                 
                 # Clean fields (remove None values and ensure proper types)
                 cleaned_fields = {}
@@ -118,6 +126,34 @@ class OpenMeteoFetcher:
             logger.error(f"Error preparing Open-Meteo records: {e}", 
                         extra={'context': 'OpenMeteo Data Preparation Error'})
             raise
+
+    def _calculate_daily_average(self, hourly_data: Dict, variable: str, hourly_times: List[str], target_date: str) -> float:
+        """
+        Calculate daily average from hourly data for a specific variable and date
+        """
+        try:
+            variable_data = hourly_data.get(variable, [])
+            if not variable_data or not hourly_times:
+                return None
+            
+            # Find hourly values for the target date
+            daily_values = []
+            for i, time_str in enumerate(hourly_times):
+                if i < len(variable_data) and time_str.startswith(target_date):
+                    value = variable_data[i]
+                    if value is not None:
+                        daily_values.append(float(value))
+            
+            # Calculate average
+            if daily_values:
+                return sum(daily_values) / len(daily_values)
+            else:
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error calculating daily average for {variable}: {e}", 
+                         extra={'context': 'OpenMeteo Data Calculation'})
+            return None
 
     def get_weather_code_description(self, code: int) -> str:
         """
