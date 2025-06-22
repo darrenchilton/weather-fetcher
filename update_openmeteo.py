@@ -18,15 +18,12 @@ import logging
 import traceback
 from datetime import datetime, timedelta
 
-# Add the project directory to Python path
-sys.path.append('/Users/plex/Projects/weather_fetcher')
-
 # Import our custom modules
 from openmeteo_fetcher import OpenMeteoFetcher
 from weather_fetcher import AirtableAPI  # Import existing AirtableAPI class
 
-# Configure logging to match existing system
-log_path = os.path.join('/Users/plex/Projects/weather_fetcher', 'openmeteo_update.log')
+# Configure logging to work in both local and GitHub Actions environments
+log_path = 'openmeteo_update.log'  # Use relative path instead of absolute
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(context)s',
@@ -137,25 +134,16 @@ def check_prerequisites():
     
     issues = []
     
-    # Check if main weather fetcher log exists (indicates VC data was fetched)
-    vc_log_path = '/Users/plex/Projects/weather_fetcher/output.log'
-    if not os.path.exists(vc_log_path):
-        issues.append("Visual Crossing log file not found - main weather fetch may not have run")
-    else:
-        # Check if VC log has recent entries (within last 2 hours)
-        try:
-            stat = os.stat(vc_log_path)
-            last_modified = datetime.fromtimestamp(stat.st_mtime)
-            if datetime.now() - last_modified > timedelta(hours=2):
-                issues.append(f"Visual Crossing log last modified {last_modified} - may be stale")
-        except Exception as e:
-            issues.append(f"Could not check Visual Crossing log timestamp: {e}")
-    
     # Check environment variables
     required_env_vars = ['AIRTABLE_API_KEY', 'AIRTABLE_BASE_ID']
     for var in required_env_vars:
         if not os.getenv(var):
             issues.append(f"Environment variable {var} not set")
+    
+    # Skip file checks in GitHub Actions environment
+    if os.getenv('GITHUB_ACTIONS'):
+        logger.info("Running in GitHub Actions - skipping local file checks", 
+                   extra={'context': 'Prerequisite Check'})
     
     if issues:
         for issue in issues:
