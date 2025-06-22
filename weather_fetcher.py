@@ -64,6 +64,146 @@ class WeatherDataFetcher:
             raise
 
 class AirtableAPI:
+    # Add these methods to your existing AirtableAPI class in weather_fetcher.py
+
+def update_records_with_openmeteo(self, openmeteo_records: List[Dict]) -> bool:
+    """
+    Update existing Airtable records with Open-Meteo data
+    Matches records by datetime field and adds OM fields
+    """
+    if not openmeteo_records:
+        logger.info("No Open-Meteo records to process", 
+                   extra={'context': 'OpenMeteo Update'})
+        return True
+
+    try:
+        # Get existing Visual Crossing records
+        existing_records = self.get_existing_records()
+        logger.info(f"Found {len(existing_records)} existing VC records for OM update", 
+                   extra={'context': 'OpenMeteo Update'})
+
+        records_to_update = []
+        matched_count = 0
+        
+        for om_record in openmeteo_records:
+            om_date = om_record['datetime']
+            
+            if om_date in existing_records:
+                matched_count += 1
+                existing_record = existing_records[om_date]
+                
+                # Calculate temperature difference (VC - OM)
+                vc_temp = existing_record['fields'].get('temp')
+                om_temp_f = om_record.get('om_temp_f')
+                temp_difference = None
+                
+                if vc_temp is not None and om_temp_f is not None:
+                    temp_difference = round(float(vc_temp) - float(om_temp_f), 1)
+                
+                # Prepare update record with OM fields + temperature difference
+                update_fields = {k: v for k, v in om_record.items() if k != 'datetime'}
+                if temp_difference is not None:
+                    update_fields['temp_difference'] = temp_difference
+                
+                update_record = {
+                    'id': existing_record['id'],
+                    'fields': update_fields
+                }
+                records_to_update.append(update_record)
+                
+                logger.info(f"Matched OM data for {om_date}: temp_diff={temp_difference}°F", 
+                           extra={'context': 'OpenMeteo Matching'})
+            else:
+                logger.warning(f"No existing VC record found for {om_date}", 
+                             extra={'context': 'OpenMeteo Matching'})
+
+        logger.info(f"Matched {matched_count}/{len(openmeteo_records)} OM records with existing VC data", 
+                   extra={'context': 'OpenMeteo Update'})
+
+        # Update records in batches
+        if records_to_update:
+            success = self._batch_update_openmeteo(records_to_update)
+            if success:
+                logger.info(f"Successfully updated {len(records_to_update)} records with Open-Meteo data", 
+                           extra={'context': 'OpenMeteo Update'})
+            return success
+        else:
+            logger.info("No records to update with Open-Meteo data", 
+                       extra={'context': 'OpenMeteo Update'})
+            return True
+
+    except Exception as e:
+        logger.error(f"Error updating records with Open-Meteo data: {e}", 
+                    extra={'context': 'OpenMeteo Update Error'})
+        raise
+
+def _batch_update_openmeteo(self, records: List[Dict], batch_size: int = 10) -> bool:
+    """
+    Update records in batches specifically for Open-Meteo data
+    """
+    success = True
+    
+    for i in range(0, len(records), batch_size):
+        batch = records[i:i + batch_size]
+        payload = {"records": batch}
+        
+        try:
+            response = requests.patch(self.weather_api_url, headers=self.headers, json=payload)
+            response.raise_for_status()
+            logger.info(f"Updated OM batch {i//batch_size + 1} ({len(batch)} records)", 
+                       extra={'context': 'OpenMeteo Batch Update'})
+            time.sleep(0.2)  # Rate limiting
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error updating OM batch {i//batch_size + 1}: {e}", 
+                        extra={'context': 'OpenMeteo Batch Update Error'})
+            success = False
+            break
+    
+    return success
+
+def get_temperature_comparison_stats(self) -> Dict:
+    """
+    Analyze temperature differences between Visual Crossing and Open-Meteo
+    Returns statistics for monitoring data quality
+    """
+    try:
+        existing_records = self.get_existing_records()
+        
+        differences = []
+        valid_comparisons = 0
+        
+        for date, record_data in existing_records.items():
+            fields = record_data['fields']
+            vc_temp = fields.get('temp')
+            om_temp_f = fields.get('om_temp_f')
+            
+            if vc_temp is not None and om_temp_f is not None:
+                diff = float(vc_temp) - float(om_temp_f)
+                differences.append(diff)
+                valid_comparisons += 1
+        
+        if differences:
+            stats = {
+                'total_comparisons': valid_comparisons,
+                'mean_difference': round(sum(differences) / len(differences), 2),
+                'max_difference': round(max(differences), 2),
+                'min_difference': round(min(differences), 2),
+                'abs_mean_difference': round(sum(abs(d) for d in differences) / len(differences), 2)
+            }
+            
+            logger.info(f"Temperature comparison stats: {stats}", 
+                       extra={'context': 'Temperature Analysis'})
+            return stats
+        else:
+            logger.warning("No valid temperature comparisons found", 
+                         extra={'context': 'Temperature Analysis'})
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Error calculating temperature comparison stats: {e}", 
+                    extra={'context': 'Temperature Analysis Error'})
+        return {}
     def __init__(self):
         self.api_key = os.getenv('AIRTABLE_API_KEY')
         self.base_id = os.getenv('AIRTABLE_BASE_ID')
