@@ -14,19 +14,19 @@ import logging
 import os
 from typing import Dict, List
 import time
-...
 
+# Configure logger
 logger = logging.getLogger("openmeteo_fetcher")
 logger.setLevel(logging.INFO)
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(context)s - %(message)s'
-)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+if not logger.handlers:
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(context)s - %(message)s'
+    )
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
 
 
 class OpenMeteoFetcher:
@@ -143,7 +143,8 @@ class OpenMeteoFetcher:
 
             for i, date_str in enumerate(daily_times):
                 # Get temperature from daily data (more accurate)
-                temp_c = daily_data.get('temperature_2m_mean', [... if i < len(daily_data.get('temperature_2m_mean', [])) else None
+                temps_c = daily_data.get('temperature_2m_mean', [])
+                temp_c = temps_c[i] if i < len(temps_c) else None
                 temp_f = (temp_c * 9 / 5) + 32 if temp_c is not None else None
 
                 # Calculate daily averages/sums from hourly data
@@ -153,45 +154,56 @@ class OpenMeteoFetcher:
                 daily_pressure = self._calculate_daily_average(
                     hourly_data, 'surface_pressure', hourly_times, date_str
                 )
-                daily_wind_speed = self._calculate_daily_average(
-                    hourly_data, 'wind_speed_10m', hourly_times, date_str
-                )
-
-                daily_precip = self._calculate_daily_sum(
-                    hourly_data, 'precipitation', hourly_times, date_str
-                )
-
-                # New snowfall & snow depth metrics
-                daily_snowfall = self._calculate_daily_sum(
-                    hourly_data, 'snowfall', hourly_times, date_str
-                )
                 daily_snow_depth = self._calculate_daily_average(
                     hourly_data, 'snow_depth', hourly_times, date_str
                 )
+                daily_snowfall = self._calculate_daily_sum(
+                    hourly_data, 'snowfall', hourly_times, date_str
+                )
 
-                # Rolling last-6-hours snowfall for today only
-                snowfall_6h = None
+                # Rolling last-6-hours snowfall, only for today's record
+                snow_6h = None
                 if date_str == today_str:
-                    snowfall_6h = self._calculate_rolling_snowfall_6h(
-                        hourly_data, hourly_times
+                    snow_6h = self._calculate_last_hours_sum(
+                        hourly_data, 'snowfall', hourly_times, 6
                     )
 
-                record = {
-                    'date': date_str,
-                    'om_temp': temp_f,
+                # Prepare fields for Airtable update
+                om_fields = {
+                    'datetime': date_str,     # match existing VC records
+                    'om_temp': temp_c,        # Celsius
+                    'om_temp_f': temp_f,      # Fahrenheit for comparison
                     'om_humidity': daily_humidity,
                     'om_pressure': daily_pressure,
-                    'om_wind': daily_wind_speed,
-                    'om_precip': daily_precip,
-                    'om_snowfall': daily_snowfall,
-                    'om_snowfall_6h': snowfall_6h,
                     'om_snow_depth': daily_snow_depth,
+                    'om_snowfall': daily_snowfall,
+                    'om_snowfall_6h': snow_6h,
                 }
 
-                records.append(record)
+                # Clean up / normalize numeric fields
+                cleaned_fields: Dict[str, object] = {}
+                for k, v in om_fields.items():
+                    if v is None:
+                        cleaned_fields[k] = None
+                        continue
+
+                    try:
+                        if k in [
+                            'om_temp', 'om_temp_f', 'om_humidity', 'om_pressure',
+                            'om_snow_depth'
+                        ]:
+                            cleaned_fields[k] = round(float(v), 1)
+                        elif k in ['om_precipitation', 'om_snowfall', 'om_snowfall_6h']:
+                            cleaned_fields[k] = round(float(v), 2)
+                        else:
+                            cleaned_fields[k] = v
+                    except Exception:
+                        cleaned_fields[k] = v
+
+                records.append(cleaned_fields)
 
             logger.info(
-                f"Prepared {len(records)} Open-Meteo records",
+                f"Prepared {len(records)} Open-Meteo records for update",
                 extra={'context': 'OpenMeteo Data Preparation'}
             )
             return records
@@ -224,14 +236,12 @@ class OpenMeteoFetcher:
 
             total = 0.0
             found = False
-
-            for value, time_str in zip(variable_data, hourly_times):
-                if not time_str.startswith(target_date):
-                    continue
-                if value is None:
-                    continue
-                found = True
-                total += value
+            for i, time_str in enumerate(hourly_times):
+                if i < len(variable_data) and time_str.startswith(target_date):
+                    value = variable_data[i]
+                    if value is not None:
+                        found = True
+                        total += value
 
             return total if found else None
         except Exception as e:
@@ -257,12 +267,11 @@ class OpenMeteoFetcher:
                 return None
 
             values = []
-            for value, time_str in zip(variable_data, hourly_times):
-                if not time_str.startswith(target_date):
-                    continue
-                if value is None:
-                    continue
-                values.append(value)
+            for i, time_str in enumerate(hourly_times):
+                if i < len(variable_data) and time_str.startswith(target_date):
+                    value = variable_data[i]
+                    if value is not None:
+                        values.append(value)
 
             if not values:
                 return None
@@ -275,30 +284,31 @@ class OpenMeteoFetcher:
             )
             return None
 
-    def _calculate_rolling_snowfall_6h(
+    def _calculate_last_hours_sum(
         self,
         hourly_data: Dict,
-        hourly_times: List[str]
+        variable: str,
+        hourly_times: List[str],
+        hours: int
     ):
         """
-        Calculate rolling last-6-hours snowfall (inches) for "now".
-        Uses the most recent 6 hourly entries in the hourly snowfall series.
+        Calculate sum over the last N hours for a specific hourly variable.
         """
         try:
-            snowfall_data = hourly_data.get('snowfall', [])
-            if not snowfall_data or not hourly_times:
+            variable_data = hourly_data.get(variable, [])
+            if not variable_data or not hourly_times:
                 return None
 
-            # Take the last 6 values that are not None
-            non_null_values = [v for v in snowfall_data if v is not None]
+            # Take the last N non-null values
+            non_null_values = [v for v in variable_data if v is not None]
             if not non_null_values:
                 return None
 
-            last_6 = non_null_values[-6:]
-            return sum(last_6)
+            last_n = non_null_values[-hours:]
+            return sum(last_n)
         except Exception as e:
             logger.error(
-                f"Error calculating rolling 6h snowfall: {e}",
+                f"Error calculating last {hours} hours sum for {variable}: {e}",
                 extra={'context': 'OpenMeteo Data Calculation Error'}
             )
             return None
@@ -310,6 +320,7 @@ def test_openmeteo_fetch():
     and record preparation are working.
     """
     try:
+        print("🌤️  Testing Open-Meteo Weather Fetcher...")
         fetcher = OpenMeteoFetcher()
         data = fetcher.get_weather_data()
 
