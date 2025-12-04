@@ -15,6 +15,8 @@ import logging
 import time
 from datetime import datetime, timedelta
 
+import requests
+
 from openmeteo_fetcher import OpenMeteoFetcher
 from weather_fetcher import AirtableAPI
 
@@ -73,10 +75,8 @@ def main() -> bool:
         extra={"context": "Backfill Start"}
     )
 
-    # Reuse your existing class but point it at the archive endpoint
+    # Reuse your existing class for lat/lon + prepare_records only
     om_fetcher = OpenMeteoFetcher()
-    om_fetcher.base_url = "https://archive-api.open-meteo.com/v1/archive"
-
     airtable = AirtableAPI()
 
     current_start = start_date
@@ -90,11 +90,31 @@ def main() -> bool:
         )
 
         try:
-            raw = om_fetcher.fetch_weather_data(
-                start_time=current_start,
-                end_time=current_end,
+            params = {
+                "latitude": om_fetcher.lat,
+                "longitude": om_fetcher.lon,
+                "hourly": (
+                    "temperature_2m,relative_humidity_2m,precipitation,"
+                    "snowfall,snow_depth,weather_code,surface_pressure,wind_speed_10m"
+                ),
+                "daily": (
+                    "temperature_2m_max,temperature_2m_min,temperature_2m_mean,"
+                    "precipitation_sum,weather_code,wind_speed_10m_max"
+                ),
+                "timezone": "America/New_York",
+                "start_date": current_start.strftime("%Y-%m-%d"),
+                "end_date": current_end.strftime("%Y-%m-%d"),
+            }
+
+            response = requests.get(
+                "https://archive-api.open-meteo.com/v1/archive",
+                params=params,
+                timeout=30,
             )
-        except Exception as e:
+            response.raise_for_status()
+            raw = response.json()
+
+        except requests.RequestException as e:
             logger.error(
                 f"Failed to fetch archive data: {e}",
                 extra={"context": "Archive Fetch Error"}
