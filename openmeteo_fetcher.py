@@ -5,6 +5,7 @@ CHANGELOG
 - Computes historical daily snowfall total (om_snowfall) by summing hourly snowfall per date.
 - Computes rolling last-6-hours snowfall for today only (om_snowfall_6h).
 - Computes daily average snow depth (om_snow_depth).
+- Added fetch_weather_data() alias for backwards compatibility.
 """
 
 import requests
@@ -21,6 +22,7 @@ load_dotenv()
 # Configure logging to match existing system
 logger = logging.getLogger(__name__)
 
+
 class OpenMeteoFetcher:
     def __init__(self):
         self.base_url = "https://api.open-meteo.com/v1/forecast"
@@ -29,7 +31,13 @@ class OpenMeteoFetcher:
         self.lon = -74.21
         self.elevation = 549  # meters (1,801 ft) - closer to actual 1,972ft than airports
         logger.info("Initialized OpenMeteoFetcher for Hensonville, NY",
-                   extra={'context': 'OpenMeteo Initialization'})
+                    extra={'context': 'OpenMeteo Initialization'})
+
+    def fetch_weather_data(self):
+        """
+        Backwards-compatible alias for update_openmeteo.py.
+        """
+        return self.fetch_forecast()
 
     def fetch_forecast(self) -> Dict:
         """
@@ -52,19 +60,19 @@ class OpenMeteoFetcher:
 
         try:
             logger.info(f"Fetching Open-Meteo data for coordinates: {self.lat}, {self.lon}",
-                       extra={'context': 'OpenMeteo Data Retrieval'})
+                        extra={'context': 'OpenMeteo Data Retrieval'})
 
             response = requests.get(self.base_url, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
 
             logger.info("Successfully retrieved Open-Meteo forecast data",
-                       extra={'context': 'OpenMeteo Data Retrieved'})
+                        extra={'context': 'OpenMeteo Data Retrieved'})
             return data
 
         except requests.RequestException as e:
             logger.error(f"Error fetching Open-Meteo data: {e}",
-                        extra={'context': 'OpenMeteo API Error'})
+                         extra={'context': 'OpenMeteo API Error'})
             raise
 
     def prepare_records(self, data: Dict) -> List[Dict]:
@@ -81,7 +89,7 @@ class OpenMeteoFetcher:
 
             if not daily_times:
                 logger.warning("No daily data available from Open-Meteo",
-                             extra={'context': 'OpenMeteo Data Preparation'})
+                               extra={'context': 'OpenMeteo Data Preparation'})
                 return records
 
             today_str = datetime.now().strftime('%Y-%m-%d')
@@ -89,18 +97,28 @@ class OpenMeteoFetcher:
             for i, date_str in enumerate(daily_times):
                 # Get temperature from daily data (more accurate)
                 temp_c = daily_data.get('temperature_2m_mean', [])[i] if i < len(daily_data.get('temperature_2m_mean', [])) else None
-                temp_f = (temp_c * 9/5) + 32 if temp_c is not None else None
+                temp_f = (temp_c * 9 / 5) + 32 if temp_c is not None else None
 
                 # Calculate daily averages/sums from hourly data
-                daily_humidity = self._calculate_daily_average(hourly_data, 'relative_humidity_2m', hourly_times, date_str)
-                daily_pressure = self._calculate_daily_average(hourly_data, 'surface_pressure', hourly_times, date_str)
-                daily_snow_depth = self._calculate_daily_average(hourly_data, 'snow_depth', hourly_times, date_str)
-                daily_snowfall = self._calculate_daily_sum(hourly_data, 'snowfall', hourly_times, date_str)
+                daily_humidity = self._calculate_daily_average(
+                    hourly_data, 'relative_humidity_2m', hourly_times, date_str
+                )
+                daily_pressure = self._calculate_daily_average(
+                    hourly_data, 'surface_pressure', hourly_times, date_str
+                )
+                daily_snow_depth = self._calculate_daily_average(
+                    hourly_data, 'snow_depth', hourly_times, date_str
+                )
+                daily_snowfall = self._calculate_daily_sum(
+                    hourly_data, 'snowfall', hourly_times, date_str
+                )
 
                 # Rolling last-6-hours snowfall, only for today's record
                 snow_6h = None
                 if date_str == today_str:
-                    snow_6h = self._calculate_last_hours_sum(hourly_data, 'snowfall', hourly_times, 6)
+                    snow_6h = self._calculate_last_hours_sum(
+                        hourly_data, 'snowfall', hourly_times, 6
+                    )
 
                 # Prepare fields for Airtable update
                 om_fields = {
@@ -128,7 +146,10 @@ class OpenMeteoFetcher:
                 for k, v in om_fields.items():
                     if v is not None and v != "":
                         # Round numeric values appropriately
-                        if k in ['om_temp', 'om_temp_f', 'om_humidity', 'om_pressure', 'om_wind_speed', 'om_wind_speed_mph', 'om_snow_depth']:
+                        if k in [
+                            'om_temp', 'om_temp_f', 'om_humidity', 'om_pressure',
+                            'om_wind_speed', 'om_wind_speed_mph', 'om_snow_depth'
+                        ]:
                             cleaned_fields[k] = round(float(v), 1)
                         elif k in ['om_weather_code', 'om_elevation']:
                             cleaned_fields[k] = int(v)
@@ -140,12 +161,12 @@ class OpenMeteoFetcher:
                 records.append(cleaned_fields)
 
             logger.info(f"Prepared {len(records)} Open-Meteo records for update",
-                       extra={'context': 'OpenMeteo Data Preparation'})
+                        extra={'context': 'OpenMeteo Data Preparation'})
             return records
 
         except Exception as e:
             logger.error(f"Error preparing Open-Meteo records: {e}",
-                        extra={'context': 'OpenMeteo Data Preparation Error'})
+                         extra={'context': 'OpenMeteo Data Preparation Error'})
             raise
 
     def _calculate_daily_sum(self, hourly_data: Dict, variable: str, hourly_times: List[str], target_date: str):
@@ -170,7 +191,7 @@ class OpenMeteoFetcher:
 
         except Exception as e:
             logger.warning(f"Error calculating daily sum for {variable}: {e}",
-                         extra={'context': 'OpenMeteo Data Calculation'})
+                           extra={'context': 'OpenMeteo Data Calculation'})
             return None
 
     def _calculate_last_hours_sum(self, hourly_data: Dict, variable: str, hourly_times: List[str], hours: int):
@@ -204,7 +225,7 @@ class OpenMeteoFetcher:
 
         except Exception as e:
             logger.warning(f"Error calculating last-{hours}h sum for {variable}: {e}",
-                         extra={'context': 'OpenMeteo Data Calculation'})
+                           extra={'context': 'OpenMeteo Data Calculation'})
             return None
 
     def _calculate_daily_average(self, hourly_data: Dict, variable: str, hourly_times: List[str], target_date: str):
@@ -231,7 +252,7 @@ class OpenMeteoFetcher:
 
         except Exception as e:
             logger.warning(f"Error calculating daily average for {variable}: {e}",
-                         extra={'context': 'OpenMeteo Data Calculation'})
+                           extra={'context': 'OpenMeteo Data Calculation'})
             return None
 
 
@@ -248,7 +269,7 @@ def test_openmeteo_fetch() -> bool:
         data = fetcher.fetch_forecast()
 
         if data:
-            print(f"✅ Successfully fetched data from Open-Meteo")
+            print("✅ Successfully fetched data from Open-Meteo")
             print(f"   Location: {data.get('latitude', 'N/A')}, {data.get('longitude', 'N/A')}")
             print(f"   Timezone: {data.get('timezone', 'N/A')}")
 
