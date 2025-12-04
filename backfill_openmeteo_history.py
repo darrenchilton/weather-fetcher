@@ -35,6 +35,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("openmeteo_backfill")
 
+# Backfill network behavior (override via env if needed)
+BACKFILL_TIMEOUT = float(os.getenv("OM_BACKFILL_TIMEOUT", "60"))  # seconds
+BACKFILL_MAX_RETRIES = int(os.getenv("OM_BACKFILL_MAX_RETRIES", "3"))
+BACKFILL_RETRY_DELAY = float(os.getenv("OM_BACKFILL_RETRY_DELAY_SECONDS", "5"))
+
 
 def parse_date(env_var: str, default: str) -> datetime:
     """Parse YYYY-MM-DD from environment env_var, or use default."""
