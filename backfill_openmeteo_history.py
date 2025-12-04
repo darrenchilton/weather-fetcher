@@ -35,10 +35,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("openmeteo_backfill")
 
-# Backfill network behavior (override via env if needed)
+# Network behavior for backfill (override via env if needed)
 BACKFILL_TIMEOUT = float(os.getenv("OM_BACKFILL_TIMEOUT", "60"))  # seconds
-BACKFILL_MAX_RETRIES = int(os.getenv("OM_BACKFILL_MAX_RETRIES", "3"))
-BACKFILL_RETRY_DELAY = float(os.getenv("OM_BACKFILL_RETRY_DELAY_SECONDS", "5"))
+BACKFILL_RETRY_DELAY = float(os.getenv("OM_BACKFILL_RETRY_DELAY_SECONDS", "10"))
 
 
 def parse_date(env_var: str, default: str) -> datetime:
@@ -255,12 +254,12 @@ def main() -> bool:
     while current_start <= end_date:
         current_end = min(current_start + timedelta(days=chunk_days - 1), end_date)
 
-                logger.info(
+        logger.info(
             f"Fetching historical data for {current_start.date()} to {current_end.date()}",
             extra={"context": "OM Archive Fetch"}
         )
 
-        raw = None
+        # Infinite retry loop for this chunk: never skip
         params = {
             "latitude": om_fetcher.lat,
             "longitude": om_fetcher.lon,
@@ -277,11 +276,11 @@ def main() -> bool:
             "end_date": current_end.strftime("%Y-%m-%d"),
         }
 
-        for attempt in range(1, BACKFILL_MAX_RETRIES + 1):
+        while True:
             try:
                 logger.info(
-                    f"Archive API request attempt {attempt}/{BACKFILL_MAX_RETRIES} "
-                    f"for {params['start_date']} → {params['end_date']}",
+                    f"Archive API request for {params['start_date']} → {params['end_date']} "
+                    f"(timeout={BACKFILL_TIMEOUT}s)",
                     extra={"context": "OM Archive Fetch"}
                 )
                 response = requests.get(
@@ -291,31 +290,27 @@ def main() -> bool:
                 )
                 response.raise_for_status()
                 raw = response.json()
-                break
-            except requests.RequestException as e:
-                if attempt < BACKFILL_MAX_RETRIES:
+
+                # Basic sanity: ensure we got daily data
+                daily = raw.get("daily", {})
+                if not daily.get("time"):
                     logger.warning(
-                        f"Archive fetch attempt {attempt} failed: {e}; "
+                        "Archive API returned empty/invalid daily data; "
                         f"retrying in {BACKFILL_RETRY_DELAY}s",
                         extra={"context": "OM Archive Fetch Retry"}
                     )
                     time.sleep(BACKFILL_RETRY_DELAY)
-                else:
-                    logger.error(
-                        f"Failed to fetch archive data after {BACKFILL_MAX_RETRIES} attempts: {e}",
-                        extra={"context": "Archive Fetch Error"}
-                    )
-                    raw = None
+                    continue
 
-        if not raw:
-            logger.error(
-                f"Skipping range {current_start.date()} → {current_end.date()} "
-                "due to repeated archive fetch failures",
-                extra={"context": "Archive Fetch Skipped"}
-            )
-            current_start = current_end + timedelta(days=1)
-            time.sleep(sleep_seconds)
-            continue
+                break  # success, exit retry loop
+
+            except requests.RequestException as e:
+                logger.warning(
+                    f"Archive fetch failed for {params['start_date']} → {params['end_date']}: {e}; "
+                    f"retrying in {BACKFILL_RETRY_DELAY}s",
+                    extra={"context": "OM Archive Fetch Retry"}
+                )
+                time.sleep(BACKFILL_RETRY_DELAY)
 
         try:
             records = prepare_backfill_records(raw)
@@ -328,7 +323,7 @@ def main() -> bool:
 
         if not records:
             logger.warning(
-                "No records prepared; skipping Airtable write",
+                "No records prepared; skipping Airtable write for this range",
                 extra={"context": "Backfill Prep Empty"}
             )
             current_start = current_end + timedelta(days=1)
