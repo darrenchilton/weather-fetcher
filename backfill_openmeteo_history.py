@@ -255,47 +255,63 @@ def main() -> bool:
     while current_start <= end_date:
         current_end = min(current_start + timedelta(days=chunk_days - 1), end_date)
 
-        logger.info(
+                logger.info(
             f"Fetching historical data for {current_start.date()} to {current_end.date()}",
             extra={"context": "OM Archive Fetch"}
         )
 
-        try:
-            params = {
-                "latitude": om_fetcher.lat,
-                "longitude": om_fetcher.lon,
-                "hourly": (
-                    "temperature_2m,relative_humidity_2m,precipitation,"
-                    "snowfall,snow_depth,weather_code,surface_pressure,wind_speed_10m"
-                ),
-                "daily": (
-                    "temperature_2m_max,temperature_2m_min,temperature_2m_mean,"
-                    "precipitation_sum,weather_code,wind_speed_10m_max"
-                ),
-                "timezone": "America/New_York",
-                "start_date": current_start.strftime("%Y-%m-%d"),
-                "end_date": current_end.strftime("%Y-%m-%d"),
-            }
+        raw = None
+        params = {
+            "latitude": om_fetcher.lat,
+            "longitude": om_fetcher.lon,
+            "hourly": (
+                "temperature_2m,relative_humidity_2m,precipitation,"
+                "snowfall,snow_depth,weather_code,surface_pressure,wind_speed_10m"
+            ),
+            "daily": (
+                "temperature_2m_max,temperature_2m_min,temperature_2m_mean,"
+                "precipitation_sum,weather_code,wind_speed_10m_max"
+            ),
+            "timezone": "America/New_York",
+            "start_date": current_start.strftime("%Y-%m-%d"),
+            "end_date": current_end.strftime("%Y-%m-%d"),
+        }
 
-            response = requests.get(
-                "https://archive-api.open-meteo.com/v1/archive",
-                params=params,
-                timeout=30,
-            )
-            response.raise_for_status()
-            raw = response.json()
-
-        except requests.RequestException as e:
-            logger.error(
-                f"Failed to fetch archive data: {e}",
-                extra={"context": "Archive Fetch Error"}
-            )
-            return False
+        for attempt in range(1, BACKFILL_MAX_RETRIES + 1):
+            try:
+                logger.info(
+                    f"Archive API request attempt {attempt}/{BACKFILL_MAX_RETRIES} "
+                    f"for {params['start_date']} → {params['end_date']}",
+                    extra={"context": "OM Archive Fetch"}
+                )
+                response = requests.get(
+                    "https://archive-api.open-meteo.com/v1/archive",
+                    params=params,
+                    timeout=BACKFILL_TIMEOUT,
+                )
+                response.raise_for_status()
+                raw = response.json()
+                break
+            except requests.RequestException as e:
+                if attempt < BACKFILL_MAX_RETRIES:
+                    logger.warning(
+                        f"Archive fetch attempt {attempt} failed: {e}; "
+                        f"retrying in {BACKFILL_RETRY_DELAY}s",
+                        extra={"context": "OM Archive Fetch Retry"}
+                    )
+                    time.sleep(BACKFILL_RETRY_DELAY)
+                else:
+                    logger.error(
+                        f"Failed to fetch archive data after {BACKFILL_MAX_RETRIES} attempts: {e}",
+                        extra={"context": "Archive Fetch Error"}
+                    )
+                    raw = None
 
         if not raw:
-            logger.warning(
-                "Empty response; skipping",
-                extra={"context": "Archive Fetch Empty"}
+            logger.error(
+                f"Skipping range {current_start.date()} → {current_end.date()} "
+                "due to repeated archive fetch failures",
+                extra={"context": "Archive Fetch Skipped"}
             )
             current_start = current_end + timedelta(days=1)
             time.sleep(sleep_seconds)
