@@ -1,0 +1,50 @@
+name: Backfill Open-Meteo History
+
+on:
+  workflow_dispatch:
+    inputs:
+      backfill_start:
+        description: "Start date (YYYY-MM-DD)"
+        required: false
+        default: "2021-01-01"
+      backfill_end:
+        description: "End date (YYYY-MM-DD)"
+        required: false
+        default: "2025-06-21"
+      chunk_days:
+        description: "Chunk size (days)"
+        required: false
+        default: "30"
+      sleep_seconds:
+        description: "Pause between chunks (seconds)"
+        required: false
+        default: "5"
+
+jobs:
+  run_backfill:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run historical backfill
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          OM_BACKFILL_START: ${{ github.event.inputs.backfill_start }}
+          OM_BACKFILL_END: ${{ github.event.inputs.backfill_end }}
+          OM_BACKFILL_CHUNK_DAYS: ${{ github.event.inputs.chunk_days }}
+          OM_BACKFILL_SLEEP_SECONDS: ${{ github.event.inputs.sleep_seconds }}
+        run: |
+          python backfill_openmeteo_history.py
