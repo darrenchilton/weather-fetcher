@@ -2,7 +2,8 @@
 CHANGELOG
 2025-12-04: Added Open-Meteo snowfall + snow depth support.
 - Requests hourly snowfall and snow_depth.
-- Computes historical daily snowfall total (om_snowfall) by summing hourly snowfall per date.
+- Requests daily snowfall_sum (forecast fallback).
+- Computes daily snowfall total (om_snowfall) from hourly snowfall per date, fallback to daily snowfall_sum.
 - Computes rolling last-6-hours snowfall for today only (om_snowfall_6h).
 - Computes daily average snow depth (om_snow_depth).
 - Added fetch_weather_data() alias for backwards compatibility.
@@ -11,9 +12,7 @@ CHANGELOG
 import requests
 from datetime import datetime, timedelta
 import logging
-import os
 from typing import Dict, List
-import time
 
 # Configure logger
 logger = logging.getLogger("openmeteo_fetcher")
@@ -39,6 +38,7 @@ class OpenMeteoFetcher:
         self.base_url = "https://api.open-meteo.com/v1/forecast"
         self.lat = latitude
         self.lon = longitude
+        self.elevation = 549  # meters
 
     def fetch_weather_data(
         self,
@@ -65,7 +65,7 @@ class OpenMeteoFetcher:
         end_time: datetime = None
     ) -> Dict:
         """
-        Fetch weather data from Open-Meteo API.
+        Fetch weather data from Open-Meteo API (forecast endpoint).
         """
         lat = latitude if latitude is not None else self.lat
         lon = longitude if longitude is not None else self.lon
@@ -79,7 +79,7 @@ class OpenMeteoFetcher:
             ),
             'daily': (
                 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,'
-                'precipitation_sum,weather_code,wind_speed_10m_max'
+                'precipitation_sum,snowfall_sum,weather_code,wind_speed_10m_max'
             ),
             'timezone': 'America/New_York',
             'forecast_days': 7
@@ -141,60 +141,89 @@ class OpenMeteoFetcher:
 
             today_str = datetime.now().strftime('%Y-%m-%d')
 
+            # pull daily arrays once for speed/clarity
+            temps_c = daily_data.get('temperature_2m_mean', [])
+            precip_sums = daily_data.get('precipitation_sum', [])
+            weather_codes = daily_data.get('weather_code', [])
+            wind_max = daily_data.get('wind_speed_10m_max', [])
+            snowfall_sums = daily_data.get('snowfall_sum', [])
+
             for i, date_str in enumerate(daily_times):
-                # Get temperature from daily data (more accurate)
-                temps_c = daily_data.get('temperature_2m_mean', [])
+                # Daily temp
                 temp_c = temps_c[i] if i < len(temps_c) else None
                 temp_f = (temp_c * 9 / 5) + 32 if temp_c is not None else None
 
-                # Calculate daily averages/sums from hourly data
+                # Other daily values direct from daily block
+                daily_precip = precip_sums[i] if i < len(precip_sums) else None
+                daily_code = weather_codes[i] if i < len(weather_codes) else None
+                daily_wind = wind_max[i] if i < len(wind_max) else None
+
+                # Daily averages/sums from hourly
                 daily_humidity = self._calculate_daily_average(
                     hourly_data, 'relative_humidity_2m', hourly_times, date_str
                 )
                 daily_pressure = self._calculate_daily_average(
                     hourly_data, 'surface_pressure', hourly_times, date_str
                 )
+
+                # --- snow fields ---
                 daily_snow_depth = self._calculate_daily_average(
                     hourly_data, 'snow_depth', hourly_times, date_str
                 )
+
                 daily_snowfall = self._calculate_daily_sum(
                     hourly_data, 'snowfall', hourly_times, date_str
                 )
+                if daily_snowfall is None:
+                    # Forecast fallback if hourly snowfall missing
+                    daily_snowfall = snowfall_sums[i] if i < len(snowfall_sums) else None
 
-                # Rolling last-6-hours snowfall, only for today's record
+                # Rolling last-6-hours snowfall, only on today's record
                 snow_6h = None
                 if date_str == today_str:
                     snow_6h = self._calculate_last_hours_sum(
                         hourly_data, 'snowfall', hourly_times, 6
                     )
 
-                # Prepare fields for Airtable update
+                # Prepare fields for Airtable update (regular fields + snow trio)
                 om_fields = {
-                    'datetime': date_str,     # match existing VC records
-                    'om_temp': temp_c,        # Celsius
-                    'om_temp_f': temp_f,      # Fahrenheit for comparison
+                    'datetime': date_str,  # match existing VC records
+                    'om_temp': temp_c,
+                    'om_temp_f': temp_f,
                     'om_humidity': daily_humidity,
+                    'om_precipitation': daily_precip,
+                    'om_weather_code': daily_code,
                     'om_pressure': daily_pressure,
-                    'om_snow_depth': daily_snow_depth,
+                    'om_wind_speed': daily_wind,
+                    'om_elevation': self.elevation,
+                    'om_data_timestamp': datetime.now().isoformat(),
+
+                    # ✅ always included when present
                     'om_snowfall': daily_snowfall,
                     'om_snowfall_6h': snow_6h,
+                    'om_snow_depth': daily_snow_depth,
                 }
+
+                # Convert wind speed km/h -> mph
+                if om_fields['om_wind_speed'] is not None:
+                    om_fields['om_wind_speed_mph'] = om_fields['om_wind_speed'] * 0.621371
 
                 # Clean up / normalize numeric fields
                 cleaned_fields: Dict[str, object] = {}
                 for k, v in om_fields.items():
-                    if v is None:
-                        cleaned_fields[k] = None
-                        continue
+                    if v is None or v == "":
+                        continue  # skip None so we don't overwrite Airtable with blanks
 
                     try:
                         if k in [
                             'om_temp', 'om_temp_f', 'om_humidity', 'om_pressure',
-                            'om_snow_depth'
+                            'om_wind_speed', 'om_wind_speed_mph', 'om_snow_depth'
                         ]:
                             cleaned_fields[k] = round(float(v), 1)
                         elif k in ['om_precipitation', 'om_snowfall', 'om_snowfall_6h']:
                             cleaned_fields[k] = round(float(v), 2)
+                        elif k in ['om_weather_code', 'om_elevation']:
+                            cleaned_fields[k] = int(v)
                         else:
                             cleaned_fields[k] = v
                     except Exception:
@@ -241,7 +270,7 @@ class OpenMeteoFetcher:
                     value = variable_data[i]
                     if value is not None:
                         found = True
-                        total += value
+                        total += float(value)
 
             return total if found else None
         except Exception as e:
@@ -271,7 +300,7 @@ class OpenMeteoFetcher:
                 if i < len(variable_data) and time_str.startswith(target_date):
                     value = variable_data[i]
                     if value is not None:
-                        values.append(value)
+                        values.append(float(value))
 
             if not values:
                 return None
@@ -292,20 +321,35 @@ class OpenMeteoFetcher:
         hours: int
     ):
         """
-        Calculate sum over the last N hours for a specific hourly variable.
+        Calculate rolling sum over the last N hours ending now,
+        aligned to timestamps (not just "last N non-nulls").
         """
         try:
             variable_data = hourly_data.get(variable, [])
             if not variable_data or not hourly_times:
                 return None
 
-            # Take the last N non-null values
-            non_null_values = [v for v in variable_data if v is not None]
-            if not non_null_values:
-                return None
+            now = datetime.now()
+            window_start = now - timedelta(hours=hours)
 
-            last_n = non_null_values[-hours:]
-            return sum(last_n)
+            total = 0.0
+            found = False
+
+            for i, time_str in enumerate(hourly_times):
+                if i >= len(variable_data):
+                    continue
+                try:
+                    t = datetime.fromisoformat(time_str)
+                except ValueError:
+                    continue
+
+                if window_start < t <= now:
+                    value = variable_data[i]
+                    if value is not None:
+                        total += float(value)
+                        found = True
+
+            return total if found else None
         except Exception as e:
             logger.error(
                 f"Error calculating last {hours} hours sum for {variable}: {e}",
@@ -344,5 +388,4 @@ def test_openmeteo_fetch():
 
 
 if __name__ == "__main__":
-    # Test the Open-Meteo fetcher
     test_openmeteo_fetch()
