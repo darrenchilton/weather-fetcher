@@ -59,7 +59,7 @@ class OpenMeteoFetcher:
                 'precipitation_sum,snowfall_sum,weather_code,wind_speed_10m_max'
             ),
             'timezone': 'America/New_York',
-            'forecast_days': 13
+            'forecast_days': 16
         }
 
         if start_time is not None:
