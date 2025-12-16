@@ -39,6 +39,10 @@ weather-fetcher/
 ├── run_weather.sh               # VC shell script (legacy)
 ├── run_openmeteo.sh             # OM shell script (legacy)
 ├── requirements.txt             # Python dependencies
+├── homeassistant/               # Home Assistant WX enrichers (Phase 7)
+│   ├── scripts/
+│   │   └── thermostat_rollup_write_yesterday.py
+│   └── README.md
 └── README.md                    # This file
 ```
 
@@ -55,6 +59,29 @@ weather-fetcher/
 1. Visual Crossing fetches core weather data
 2. 30 minutes later, Open-Meteo updates existing records with additional parameters
 3. Temperature differences calculated via Airtable formula
+
+## Additional WX Producers — Home Assistant
+
+In addition to the weather ingestion pipelines (Visual Crossing and Open-Meteo), the **WX table is also enriched by Home Assistant automations**.
+
+Home Assistant updates **existing daily WX records** (keyed by `{datetime}`) with:
+
+- `Thermostat Settings (Auto)` — daily thermostat event rollups
+- `<Zone> KWH (Auto)` — per-zone daily energy usage
+- `Data Source = Auto` — marker indicating automated HA writes
+
+### Key rules
+
+- Home Assistant **never creates WX records**.
+- Records are selected using:
+  ```
+  IS_SAME({datetime}, 'YYYY-MM-DD', 'day')
+  ```
+- Field ownership is respected:
+  - Weather fetchers write weather + `om_*` fields
+  - Home Assistant writes thermostat and kWh fields only
+
+Implementation details live in [`homeassistant/`](homeassistant/).
 
 ## Setup
 
@@ -90,187 +117,22 @@ AIRTABLE_BASE_ID=your_base_id
 
 **Open-Meteo Fields (added):**
 
-* `om_temp` (Number, 1 decimal) - Temperature in Celsius
-* `om_temp_f` (Number, 1 decimal) - Temperature in Fahrenheit
-* `om_humidity` (Number, 1 decimal) - Daily average humidity
-* `om_pressure` (Number, 1 decimal) - Daily average pressure
-* `om_wind_speed` (Number, 1 decimal) - Wind speed in km/h
-* `om_wind_speed_mph` (Number, 1 decimal) - Wind speed in mph
-* `om_weather_code` (Number, integer) - WMO weather code
-* `om_elevation` (Number, integer) - Elevation in meters (549m)
-* `om_precipitation` (Number, 2 decimal) - Daily precipitation sum
-* `om_data_timestamp` (Date) - When OM data was fetched
+* `om_temp` (Number, 1 decimal)
+* `om_temp_f` (Number, 1 decimal)
+* `om_humidity` (Number, 1 decimal)
+* `om_pressure` (Number, 1 decimal)
+* `om_wind_speed` (Number, 1 decimal)
+* `om_wind_speed_mph` (Number, 1 decimal)
+* `om_weather_code` (Number, integer)
+* `om_elevation` (Number, integer)
+* `om_precipitation` (Number, 2 decimal)
+* `om_data_timestamp` (Date)
 
 **Temperature Comparison (calculated in Airtable):**
 
-* `temp_diff_celsius` (Formula) - Temperature difference: `{temp} - {om_temp}`
-
-## Usage
-
-### Manual Execution
-
-GitHub Actions can be triggered manually:
-
-1. Go to your repository → Actions tab
-2. Select "Weather Data Fetcher" workflow
-3. Click "Run workflow"
-4. Choose which job to run or run both
-
-### Monitoring
-
-View workflow runs in the GitHub Actions tab:
-
-* **Success indicators**: ✅ All steps complete
-* **Logs**: Click on workflow runs to see detailed logs
-* **Failure notifications**: GitHub will email you if workflows fail
-
-## Data Analysis
-
-### Temperature Differences
-
-The system provides comprehensive temperature comparison:
-
-* **Visual Crossing**: Airport-based data (typically warmer due to heat island effect)
-* **Open-Meteo**: Elevation-corrected data (549m, closer to actual location)
-* **Expected Range**: 0.5-3°C difference (VC typically higher)
-* **Calculation**: Done via Airtable formula for easy adjustment
-
-### Weather Code Mapping
-
-Open-Meteo uses WMO weather codes (0-99):
-
-* `0-3`: Clear to overcast conditions
-* `45-48`: Fog conditions
-* `51-67`: Rain and drizzle
-* `71-86`: Snow conditions
-* `95-99`: Thunderstorms
-
-### Data Quality Indicators
-
-* **Record matching**: Monitor how many OM records match existing VC data
-* **API success rates**: Track successful API calls vs failures
-* **Temperature variance**: Unusual differences may indicate data quality issues
-
-## API Usage
-
-### Visual Crossing
-
-* **Daily calls**: ~180 API calls
-* **Rate limit**: 1000/day
-* **Data**: Historical + forecast (45 days total)
-* **Cost**: Paid service
-
-### Open-Meteo
-
-* **Daily calls**: ~4 API calls
-* **Rate limit**: None (free tier)
-* **Data**: 7-day forecast only
-* **Cost**: Free
-
-## Troubleshooting
-
-### Common Issues
-
-**Workflow fails with "422 Unprocessable Entity":**
-
-* Check Airtable field names match exactly
-* Verify field types (Number vs Text vs Date)
-* Ensure all required OM fields exist in Airtable
-
-**Open-Meteo data missing:**
-
-* Check if OM update ran 30 minutes after VC fetch
-* Verify no API errors in workflow logs
-* Confirm Visual Crossing data exists first (OM updates existing records)
-
-**Temperature differences seem wrong:**
-
-* Verify both sources are in same units (Celsius)
-* Check Airtable formula: `{temp} - {om_temp}`
-* Ensure no unit conversion errors
-
-**No recent data:**
-
-* Check GitHub Actions workflow status
-* Verify secrets are set correctly
-* Look for API key expiration or rate limiting
-
-### Log Analysis
-
-```bash
-# View workflow history
-GitHub → Actions → Weather Data Fetcher
-
-# Check specific run details
-Click on individual workflow run → View logs
-
-# Common success indicators
-✅ "Successfully fetched weather data"
-✅ "Successfully updated X records with Open-Meteo data"
-✅ "Matched X/X OM records with existing VC data"
-```
-
-## Development
-
-### Local Testing (Optional)
-
-If you want to test locally:
-
-```bash
-# Set up environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Create .env file
-cp .env.example .env
-# Add your API keys to .env
-
-# Test components
-python openmeteo_fetcher.py  # Test OM fetcher
-python update_openmeteo.py   # Test full OM update
-```
-
-### Adding New Data Sources
-
-1. Create new fetcher class (follow `openmeteo_fetcher.py` pattern)
-2. Add fields to Airtable schema with prefix (e.g., `source_field_name`)
-3. Create update methods in `AirtableAPI` class
-4. Add new job to GitHub Actions workflow
-5. Update documentation
-
-## Changelog
-
-### 2025-12-04
-
-* Added compatibility alias `prepare_daily_records` to `OpenMeteoFetcher`.
-* Fixed syntax error in `prepare_records` related to `temp_c` extraction.
-* Updated `update_openmeteo.py` to call `prepare_records` instead of deprecated method.
-* Removed dependency on non-existent `weather_shared` module.
-* Cleaned up logging paths for GitHub Actions compatibility.
+* `temp_diff_celsius` (Formula) - `{temp} - {om_temp}`
 
 ## System Status
 
-* **Setup Date**: November 23, 2024
-* **Open-Meteo Integration**: June 22, 2025
 * **Current Status**: ✅ Fully operational
 * **Location**: Hensonville, NY (ZIP 12439)
-* **Coordinates**: 42.28°N, -74.21°W
-* **Elevation**: ~1,972ft actual, 549m (Open-Meteo), various (airports)
-
-## Data Sources Comparison
-
-| Metric       | Visual Crossing             | Open-Meteo          |
-| ------------ | --------------------------- | ------------------- |
-| **Accuracy** | Airport-based (heat island) | Elevation-corrected |
-
-## Log Diary
-
-### 2025-12-04 — Open‑Meteo Update Recovery
-
-* CI failure due to missing method `prepare_daily_records`.
-* Updated `update_openmeteo.py` to use `prepare_records`.
-* Added compatibility alias in `OpenMeteoFetcher`.
-* Fixed malformed `temp_c` expression causing SyntaxError.
-* Updated README to reflect latest codebase changes.
-* Verified module imports work in GitHub Actions environment.
