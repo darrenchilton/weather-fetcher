@@ -5,6 +5,8 @@
 **Audience:** Maintainers, operators, future auditors  
 **Status:** Authoritative technical reference
 
+“On 2025-12-18, the system transitioned from °F to °C at the HA/MQTT layer. A small number of thermostat events were recorded with mixed units; these were normalized post-hoc. Daily rollups were unaffected because they operate on event counts, not temperature arithmetic.”
+
 ---
 
 ## 1. System Overview
