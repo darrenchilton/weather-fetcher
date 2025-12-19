@@ -323,6 +323,75 @@ Thermostat events provide objective evidence of intent to heat
 
 This design ensures the DQ signal reflects system correctness, not household behavior.
 
+## 8.4 Manual vs Auto Energy Semantics (Validation Context)
+8.4.1 Purpose
+
+This section documents a confirmed semantic distinction between manual energy values sourced from the Mysa app and automated energy values sourced from Home Assistant (HA). It exists to prevent misinterpretation of Validation outcomes and to clarify why numerical mismatches do not undermine system correctness or long-term efficiency monitoring.
+
+8.4.2 Dual reporting in the Mysa app
+
+For the same zone and day, the Mysa app reports two different kWh values, depending on UI context:
+
+Zone Detail view (device-level)
+
+Energy measured directly by the thermostat device.
+
+Example: Entryway → Energy Total = 11.59 kWh (Dec 18, 2025)
+
+Home → Breakdown view (allocation-level)
+
+Mysa’s internally allocated per-zone energy.
+
+Designed to sum cleanly to the home total.
+
+Example: Albert CT → Entryway = 10.33 kWh (Dec 18, 2025)
+
+These values are both valid within Mysa but represent different semantic quantities.
+
+8.4.3 Definition of “Manual” in this system
+
+Historically and by design, this system defines:
+
+Manual kWh = Mysa Home → Breakdown view value
+
+This choice reflects historical practice and ensures consistency across zones for a given day. Device-level Mysa values are not used as the manual baseline.
+
+8.4.4 Implications for Validation results
+
+Validation compares:
+
+HA Auto (device-grounded energy measurement)
+
+Manual (Mysa Home-level allocation)
+
+Disagreements between these values indicate semantic differences between measurement models, not pipeline failures or data quality issues.
+
+Accordingly:
+
+Validation WARN/FAIL does not imply incorrect Auto data.
+
+Data Quality (DQ) remains the sole indicator of pipeline health.
+
+8.4.5 Relevance to system goals
+
+The system’s primary objective is trend-based detection of efficiency degradation, not financial reconciliation.
+
+For this objective:
+
+Absolute daily agreement is unnecessary.
+
+Stability and internal consistency of Auto measurements are paramount.
+
+HA Auto values are therefore treated as authoritative for longitudinal analysis, even when they diverge from Mysa’s allocation-layer reporting.
+
+8.4.6 Operational guidance
+
+Do not tune Auto values to match Mysa Breakdown allocations.
+
+Interpret Validation outcomes as context about manual-reference reliability.
+
+Base operational decisions on trends over time, not single-day Validation results.
+
 ---
 
 ## 9. Composite Confidence Score
