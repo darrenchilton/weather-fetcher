@@ -169,34 +169,159 @@ This prevents empty-house or testing days from generating false failures.
 
 ---
 
-## 8. Monitoring & Validation Framework
+## 8.3 Thermostat Data Quality Gate (Active-Only)
+8.3.1 Purpose
 
-The monitoring system is designed to answer one question:
+The Thermostat Data Quality (DQ) Gate provides a binary operational health signal (PASS / FAIL / WARN) answering one question only:
 
-> *Is the automated system behaving consistently enough that manual entry can be retired?*
+Given the zones that were actually active on a given day, did the automated system produce valid kWh data for those zones?
 
-It explicitly distinguishes:
-- Missing data
-- Legitimate zero usage
-- Structural zone differences (e.g., Kitchen)
+This gate is intentionally orthogonal to the comparative validation and confidence scoring framework. It does not compare against manual or modeled expectations and does not attempt to judge energy reasonableness.
 
-### 8.1 Core Monitoring Fields
+It exists to:
 
-- `Manual Expected?` — derived from `{Usage Type}`
-- `Manual kWh Missing Count` — gated by `Manual Expected?`
-- `kWh Comparison Count` — number of zones with both manual + auto data
-- `kWh Diff Max Abs` — worst absolute delta
-- `kWh Diff Max Abs (No Kitchen)` — same, excluding Kitchen
-- `Kitchen kWh Abs Diff`
+Detect missing or corrupt automated data
 
-### 8.2 Kitchen-Specific Tolerance
+Eliminate false failures caused by unused zones
 
-Kitchen is treated separately due to:
-- Open plan
-- Adjacent cold zones
-- Structural heat loss
+Provide a clean alerting signal for automation reliability
 
-Kitchen deviations are penalized only when extreme, using a separate severity band.
+8.3.2 Design Principles
+
+The DQ gate follows these rules:
+
+Active-only expectation
+A zone is expected to produce kWh data only if it was active, where “active” is defined as:
+
+At least one thermostat event recorded for that zone on the target date
+
+Evidence-based requirement
+Expectations are derived from the Thermostat Events table, not static configuration or assumptions.
+
+Zero is valid, blank is not
+
+0.0 kWh is a legitimate outcome
+
+Blank/null kWh indicates a data pipeline failure for required zones
+
+No model comparison
+The DQ gate does not consider:
+
+“Just DC” values
+
+Manual entries
+
+Expected vs actual differences
+
+Kitchen-specific tolerances
+
+Explicit guardrail for missing telemetry
+If no thermostat events exist for the day, the system emits WARN, not PASS, to avoid masking upstream event-logging failures.
+
+8.3.3 Implementation Mechanism
+
+The DQ gate is implemented as an Airtable Automation Script, scheduled once daily (typically early morning, after all overnight rollups have completed).
+
+Inputs
+
+Target date (default: yesterday, local time)
+
+WX table daily record
+
+Thermostat Events table records for the target date
+
+Outputs (written to WX table)
+
+Therm DQ Status — PASS, FAIL, or WARN
+
+Therm DQ Score — numeric (0–100), derived mechanically from findings
+
+Therm DQ Required Zones — zones inferred as required
+
+Therm DQ Missing Zones — required zones with missing kWh
+
+Therm DQ Negative Zones — required zones with invalid negative kWh
+
+Therm DQ Notes — structured diagnostic summary
+
+These fields are script-owned and must not be written by other producers.
+
+8.3.4 Required Zone Derivation
+
+For a given target date:
+
+Collect all thermostat events with Date == targetDate
+
+Extract the unique set of zones referenced by those events
+
+Remove zones explicitly excluded from DQ enforcement (e.g., Guest Hall)
+
+The remaining set becomes requiredZones
+
+There is no static “always required” list in the active-only model.
+
+8.3.5 Validation Rules
+
+For each zone in requiredZones:
+
+Missing:
+Auto kWh field is blank or non-numeric → FAIL
+
+Invalid:
+Auto kWh < 0 → FAIL
+
+Zones not in requiredZones are ignored entirely for DQ purposes.
+
+8.3.6 Status Semantics
+Status	Meaning
+PASS	All required zones have valid (≥0) Auto kWh
+FAIL	At least one required zone has missing or negative Auto kWh
+WARN	No thermostat events found; DQ expectations cannot be inferred
+
+A WARN day indicates telemetry ambiguity, not confirmed correctness.
+
+8.3.7 Relationship to Confidence Score
+
+The DQ gate and the Therm Confidence Score serve different roles:
+
+Aspect	DQ Gate	Confidence Score
+Purpose	Operational health	Analytical validation
+Scope	Auto data only	Auto vs manual/model
+Output	PASS / FAIL / WARN	0–100 score
+Driver	Evidence (events)	Coverage + deviation
+Alerting	Yes	No
+
+A day may:
+
+PASS DQ but have a low Confidence Score (model mismatch)
+
+FAIL DQ even when confidence scoring is skipped
+
+This separation is intentional and required.
+
+8.3.8 Operational Use
+
+Alerts should be driven exclusively by Therm DQ Status
+
+Investigations start with Therm DQ Notes
+
+Trend analysis continues to use the Confidence Score framework
+
+Manual energy entry retirement decisions must rely on confidence trends, not DQ status.
+
+8.3.9 Rationale for Active-Only Design
+
+The active-only approach was selected because:
+
+Not all zones are occupied daily
+
+Off days legitimately produce zero or no activity
+
+Static “expected zones” caused repeated false failures
+
+Thermostat events provide objective evidence of intent to heat
+
+This design ensures the DQ signal reflects system correctness, not household behavior.
 
 ---
 
