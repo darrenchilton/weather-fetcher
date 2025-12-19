@@ -147,6 +147,51 @@ HDD (18C) = MAX(0, 18 − {om_temp})
 
 HDD is used for **analysis and validation only**, not control logic.
 
+## 6.2 Interpreting Daily Heating Numbers (Plain-English Guide)
+
+The system produces daily summaries that may look like:
+https://airtable.com/appoTbBi5JDuMvJ9D/tblhUuES8IxQyoBqe/viwNTndUN0mEuam91?blocks=hide
+view: Zone Efficiency
+
+2025-12-18 | 7 | 103 | 9
+
+
+These values are descriptive, not judgments. They are intended to help a human understand what kind of day it was, not whether the system performed well or poorly.
+
+What each number means
+
+Heating Demand (HDD = 7)
+This reflects how cold the day was.
+A higher number means the house needed more heating; a lower number means it was mild.
+
+Total Heating Energy (103 kWh)
+This is how much energy the heating system actually used across the whole house that day.
+
+Zones Active (9)
+This is how many areas of the house were heated at least somewhat that day.
+
+How to read the combination
+
+In plain terms, this row says:
+
+“On a moderately cold day, most of the house was heated, and the system used a moderate amount of energy to do so.”
+
+This is not a score and not an efficiency rating. It is simply a factual snapshot of demand, response, and scale.
+
+What a single day does not tell you
+
+It does not indicate inefficiency
+
+It does not indicate degradation
+
+It does not require action
+
+Single days are inherently noisy. Meaning emerges only when similar days are compared over time.
+
+Intended use
+
+These summaries support pattern recognition, comparison between similar weather days, and gradual trend awareness. Operational correctness is handled separately by the Data Quality (DQ) gate.
+
 ---
 
 ## 7. Usage Modes & Intent
