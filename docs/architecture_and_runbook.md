@@ -325,6 +325,29 @@ WARN	No thermostat events found; DQ expectations cannot be inferred
 
 A WARN day indicates telemetry ambiguity, not confirmed correctness.
 
+8.3.6.1 Interpreting WARN on Unoccupied Days
+
+A WARN status is emitted when no thermostat events are recorded for the target date, because the system cannot infer which zones were required.
+
+This condition has two distinct real-world causes:
+
+Telemetry ambiguity
+An upstream logging or ingestion failure may have prevented thermostat events from being recorded.
+
+Expected inactivity (unoccupied house)
+The house was unoccupied and no thermostat setpoints or states changed during the day.
+
+In the second case, a WARN is expected and benign.
+
+Operational guidance:
+
+If {Usage Type} indicates an unoccupied or low-interaction day (e.g., Empty: Only Kitchen, Empty: All, No Usage),
+a DQ WARN due to zero events requires no action.
+
+If WARN occurs on days where thermostat interaction was expected, investigate event ingestion.
+
+This guardrail exists to avoid falsely emitting PASS when event telemetry is missing, not to signal data corruption.
+
 8.3.7 Relationship to Confidence Score
 
 The DQ gate and the Therm Confidence Score serve different roles:
