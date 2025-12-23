@@ -130,6 +130,86 @@ Missing data handling:
 - Re-running produces identical results
 - Writes overwrite the same WX record deterministically
 
+### 5.4 Daily Setpoint Baseline Rollup (Therm SP)
+
+5.4.1 Purpose
+
+In addition to daily kWh rollups, the system materializes a per-zone thermostat setpoint baseline for each day. This enables later analysis that incorporates both energy usage and setpoint intent (e.g., “higher energy because setpoints were higher”), without treating setpoint change frequency as a correctness signal.
+
+This process is explicitly non-alerting and does not affect DQ.
+
+### 5.4.2 Output Model (script-owned fields in WX)
+
+The setpoint rollup writes the following script-owned fields on the target WX record:
+
+{Therm SP Start (Derived)} — JSON map: zone → setpoint at start of day
+
+{Therm SP End (Derived)} — JSON map: zone → setpoint at end of day
+
+{Therm SP Source (Derived)} — JSON map: zone → Observed | CarriedForward | Stale
+
+{Therm SP Changes Count (Derived)} — JSON map: zone → count of setpoint-bearing events during the day
+
+{Therm SP Stale Zones (Derived)} — comma-separated list of zones considered stale
+
+{Therm SP Summary (Derived)} — human-readable diagnostic summary (includes counters)
+
+{Therm SP Last Run} — timestamp of the most recent run
+
+These fields are owned exclusively by the Therm SP script and must not be written by other producers.
+
+### 5.4.3 Data Sources and Semantics
+
+Source table: Thermostat Events
+
+Canonical event time field: {Timestamp} (date/time)
+
+Canonical setpoint field: {New Setpoint} (number)
+
+Zone identity: {Thermostat} (preferred; typically linked record name), fallback {Name} (text)
+
+Semantics:
+
+“Start setpoint” is the last known setpoint before local day start; if none exists, it uses the first setpoint event on that day.
+
+“End setpoint” is the last known setpoint on or before local day end.
+
+If no setpoint event occurred on the day but prior history exists, the day is tagged CarriedForward.
+
+If the last known setpoint is older than the staleness threshold, the zone is tagged Stale.
+
+Staleness threshold:
+
+Default: 36 hours (configurable in the automation script)
+
+Exclusions:
+
+EXCLUDED_ZONES can be provided to exclude zones from all Therm SP computations.
+
+### 5.4.4 Automation Trigger and Targeting
+
+Steady-state (production): a scheduled Airtable automation runs each morning and updates yesterday’s WX record.
+
+Trigger: Scheduled (daily), after overnight telemetry/rollups are complete
+
+Target day: yesterday (local timezone: America/New_York)
+
+Record selection: find the WX row whose {datetime} matches the target day (day-level match)
+
+Historical backfill (one-time / occasional): a separate manual workflow may be used to backfill older WX records. After backfill is complete, the scheduled automation is the authoritative mechanism.
+
+Operational guidance:
+
+The daily scheduled Therm SP run is safe to re-run; it is deterministic and overwrites the same derived fields for the target day.
+
+### 5.4.5 Relationship to Energy Rollups and Validation
+
+Therm SP provides setpoint context for later analysis of energy efficiency and behavior.
+
+Therm SP is not used for DQ alerting and does not imply correctness or incorrectness of energy measurements.
+
+Validation (Manual vs Auto energy comparisons) remains semantically separate from Therm SP.
+
 ---
 
 ## 6. Weather Normalization (HDD)
