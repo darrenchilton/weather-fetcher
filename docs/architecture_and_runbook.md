@@ -460,6 +460,40 @@ Interpret Validation outcomes as context about manual-reference reliability.
 
 Base operational decisions on trends over time, not single-day Validation results.
 
+8.4.7 Interpreting Validation WARN and FAIL Statuses
+
+The Thermostat Validation process compares Auto kWh (device-grounded measurement) against Manual kWh (Mysa Home-level allocation) for zones that are expected on a given day.
+
+As a result:
+
+A Validation WARN or FAIL does not indicate a data pipeline failure.
+
+It does not imply incorrect automated measurements.
+
+It reflects a semantic mismatch between two independently derived representations of energy usage.
+
+Common, expected causes include:
+
+Allocation differences on unoccupied or partially occupied days (e.g., Kitchen absorbing shared load)
+
+Optional or infrequently used zones (e.g., Laundry, Guest Room)
+
+Manual approximation or rounding
+
+Legitimate physical behavior differences between zones
+
+Operational guidance:
+
+Validation results are informational and non-alerting by design.
+
+Single-day WARN/FAIL outcomes should not prompt corrective action.
+
+Validation is intended to be interpreted over time, looking for repeated zone-specific bias or drift.
+
+Data Quality (DQ) remains the sole authority for determining whether automated data is trustworthy.
+
+This separation ensures that validation highlights semantic disagreement without conflating it with system health.
+
 ---
 
 ## 9. Composite Confidence Score
