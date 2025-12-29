@@ -574,7 +574,108 @@ Data Quality (DQ) remains the sole authority for determining whether automated d
 
 This separation ensures that validation highlights semantic disagreement without conflating it with system health.
 
----
+8.4.8 Hybrid Validation Thresholds (Updated 2025-12-29)
+
+**Context**
+
+Initial validation used fixed absolute thresholds (PASS ≤0.20 kWh, FAIL >0.75 kWh) which proved too strict for high-consumption zones. A 2-3 kWh difference in a 30-40 kWh zone represents only 5-10% error—actually quite good accuracy—but was flagged as FAIL.
+
+Analysis of validation data (December 2025) revealed:
+- 82% FAIL rate on non-suspect days using old thresholds
+- Average validation score: 62.7/100
+- Multiple zones with legitimate 1-2 kWh differences marked as severe failures
+
+**Updated Approach: Hybrid Thresholds**
+
+Effective 2025-12-29, validation uses hybrid logic combining absolute (kWh) and percentage thresholds:
+
+```
+PASS:  ≤0.50 kWh  OR  ≤5%
+FAIL:  >2.00 kWh  AND >15%
+```
+
+Key change: A zone must exceed **BOTH** thresholds to be marked SEVERE.
+
+**Rationale**
+
+The hybrid approach provides context-appropriate tolerance:
+- Low-usage zones (0-5 kWh): protected by absolute threshold (0.50 kWh is significant)
+- High-usage zones (20-40 kWh): protected by percentage threshold (2-3 kWh is only 5-10%)
+- Genuinely problematic differences (>2 kWh AND >15%) still trigger FAIL
+
+**Logic Flow**
+
+For each zone comparison:
+1. Calculate absolute difference (kWh)
+2. Calculate percentage difference (%)
+3. Classify:
+   - **OK**: Passes absolute threshold OR percentage threshold
+   - **WARN**: Exceeds one threshold but not both
+   - **SEVERE**: Exceeds both thresholds
+
+Record-level status:
+- **PASS**: No SEVERE zones, no WARN zones
+- **WARN**: One or more WARN zones, no SEVERE zones
+- **FAIL**: One or more SEVERE zones
+
+**Expected Impact**
+
+Based on historical data (11 non-suspect days in December 2025):
+
+| Metric | Old Thresholds | New Thresholds | Change |
+|--------|---------------|----------------|--------|
+| FAIL rate | 82% | 55% | -27% |
+| WARN rate | 9% | 36% | +27% |
+| PASS rate | 9% | 9% | No change |
+| Avg score | 62.7 | 81.8 | +19.1 |
+
+**Configurable Parameters**
+
+The script accepts these input variables for threshold tuning:
+
+```javascript
+PASS_TOL_KWH: 0.50       // Absolute PASS threshold (kWh)
+FAIL_TOL_KWH: 2.00       // Absolute FAIL threshold (kWh)
+PASS_TOL_PERCENT: 5      // Percentage PASS threshold (%)
+FAIL_TOL_PERCENT: 15     // Percentage FAIL threshold (%)
+```
+
+**Output Changes**
+
+Validation notes now include percentage error for each zone:
+```
+- Stairs: manual=43.14 kWh, auto=45.79 kWh, diff=2.65 (abs 2.65, 5.8%)
+```
+
+This provides immediate context: Stairs shows 2.65 kWh difference but only 5.8% error—now correctly classified as OK rather than FAIL.
+
+**Operational Guidance**
+
+Days that FAIL under new thresholds have genuine data quality concerns:
+- Multiple zones with 15%+ errors
+- High absolute differences (>2 kWh) combined with high percentage errors (>15%)
+- Indicates either measurement issues or Mysa app reporting failures
+
+Days that receive WARN status:
+- Have acceptable overall accuracy
+- May show isolated zones with moderate differences
+- Do not require immediate investigation
+
+**Known Problem Patterns**
+
+Analysis identified these persistent issues warranting investigation:
+1. **Stairs zone**: Shows 10-40% variability across multiple days
+2. **MANC zone**: Shows 20%+ errors on several days (Dec 20, 21, 27)
+3. **Mysa app failures**: Dec 25 & 28 showed systematic 50-90% underreporting across all zones when app stopped mid-day reporting
+
+**Relationship to Confidence Score**
+
+The Thermostat Confidence Score (Section 9) remains unchanged and continues to use its own penalty logic. The confidence score and validation thresholds serve complementary purposes:
+- **Validation thresholds**: Zone-level accuracy classification
+- **Confidence score**: Aggregate health metric for trend analysis
+
+Both remain informational and non-alerting.
+
 
 ## 9. Composite Confidence Score
 
@@ -679,5 +780,3 @@ This further reduces local state risk.
 ---
 
 **End of document**
-
-
