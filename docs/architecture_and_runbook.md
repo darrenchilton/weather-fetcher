@@ -43,6 +43,162 @@ Key architectural principle:
 > **During the day, data exists only as telemetry in Home Assistant.**  
 > **A daily snapshot materializes that telemetry into a durable record.**
 
+### 2.1 Deployment Topology & File Locations
+
+**System:** Mac Mini (hostname: `Plexs-Mac-mini`)  
+**User:** `plex`  
+**Operating System:** macOS
+
+**Home Assistant Deployment**
+
+Home Assistant runs as a Docker container named `homeassistant`.
+
+**Critical File Locations (Host Filesystem)**
+
+| Path | Description | Typical Size |
+|------|-------------|--------------|
+| `/Users/plex/homeassistant/config/` | Home Assistant configuration directory (mounted into container) | - |
+| `/Users/plex/homeassistant/config/configuration.yaml` | Main HA configuration file | ~10 KB |
+| `/Users/plex/homeassistant/config/home-assistant_v2.db` | Recorder database (telemetry storage) | ~500 MB - 1 GB |
+| `/Users/plex/homeassistant/config/scripts/` | Python rollup scripts | - |
+| `/Users/plex/homeassistant/config/scripts/thermostat_rollup_m4_write_yesterday.py` | Current production rollup script | - |
+| `/Users/plex/homeassistant/config/thermostat_rollup_write.log` | Rollup execution log | - |
+| `/Users/plex/homeassistant/config/automations.yaml` | HA automations | - |
+
+**Container Mount Points**
+
+The host directory `/Users/plex/homeassistant/config/` is mounted to `/config` inside the container.
+
+Therefore:
+- Host: `/Users/plex/homeassistant/config/home-assistant_v2.db`
+- Container: `/config/home-assistant_v2.db`
+
+**Essential Terminal Commands**
+
+**Docker Management:**
+```bash
+# Restart Home Assistant
+docker restart homeassistant
+
+# Check if container is running
+docker ps | grep homeassistant
+
+# View container logs (real-time)
+docker logs homeassistant -f
+
+# View last 100 log lines
+docker logs homeassistant --tail 100
+
+# Execute command inside container
+docker exec homeassistant <command>
+
+# Interactive shell inside container
+docker exec -it homeassistant /bin/bash
+```
+
+**Log Monitoring:**
+```bash
+# Monitor recorder operations
+docker logs homeassistant -f | grep -i recorder
+
+# Monitor purge operations
+docker logs homeassistant -f | grep -i purge
+
+# Check for errors
+docker logs homeassistant --tail 500 | grep -i error
+
+# Search logs for specific zone/sensor
+docker logs homeassistant | grep -i "stairs"
+
+# View rollup script execution log
+cat /Users/plex/homeassistant/config/thermostat_rollup_write.log
+tail -f /Users/plex/homeassistant/config/thermostat_rollup_write.log
+```
+
+**Database Operations:**
+```bash
+# Check database size
+ls -lh /Users/plex/homeassistant/config/home-assistant_v2.db
+
+# Check database size in human-readable format
+du -h /Users/plex/homeassistant/config/home-assistant_v2.db
+
+# Manual database purge (7-day retention)
+docker exec homeassistant python -m homeassistant.components.recorder.util purge --keep-days 7 --repack
+
+# Manual database purge (14-day retention)
+docker exec homeassistant python -m homeassistant.components.recorder.util purge --keep-days 14 --repack
+```
+
+**Configuration Management:**
+```bash
+# Edit configuration.yaml
+docker exec -it homeassistant nano /config/configuration.yaml
+
+# Check configuration for errors
+docker exec homeassistant python -m homeassistant --script check_config
+
+# Reload YAML configuration without restart
+# (via HA UI: Developer Tools → YAML → Reload options)
+```
+
+**Disk Space Monitoring:**
+```bash
+# Check available disk space
+df -h /Users/plex/homeassistant
+
+# Check size of config directory and contents
+du -sh /Users/plex/homeassistant/config/*
+
+# Find large files in config directory
+find /Users/plex/homeassistant/config -type f -size +100M -exec ls -lh {} \;
+```
+
+**Rollup Script Execution:**
+```bash
+# View available shell commands (defined in configuration.yaml)
+# These are executed via HA automations or Developer Tools → Actions
+
+# Manual rollup execution (if needed)
+docker exec homeassistant bash -lc 'WRITE_WX=1 python3 /config/scripts/thermostat_rollup_m4_write_yesterday.py'
+
+# View rollup output
+tail -50 /Users/plex/homeassistant/config/thermostat_rollup_write.log
+```
+
+**Network & Connectivity:**
+```bash
+# Check Home Assistant is accessible
+curl -I http://192.168.1.153:8123
+
+# Check container network
+docker inspect homeassistant | grep -A 10 NetworkSettings
+```
+
+**Backup Verification:**
+```bash
+# List recent backups (if using HA backup feature)
+ls -lt /Users/plex/homeassistant/backups/ | head -10
+
+# Check backup size
+du -sh /Users/plex/homeassistant/backups/*
+```
+
+**Quick Diagnostics:**
+```bash
+# One-liner: Check container status, database size, recent logs
+docker ps | grep homeassistant && \
+ls -lh /Users/plex/homeassistant/config/home-assistant_v2.db && \
+docker logs homeassistant --tail 20
+```
+
+**Important Notes**
+
+- Always use `docker exec homeassistant` prefix when running commands that need to access container internals
+- The database file should never be edited manually; use recorder purge operations
+- Configuration changes require restart or YAML reload to take effect
+- Log files can grow large; monitor `/config/` directory size periodically
+
 ---
 
 ## 3. Airtable WX Table Contract
@@ -98,6 +254,92 @@ This cadence is more than sufficient for accurate daily kWh integration.
 Until the daily rollup runs:
 - No durable daily kWh exists
 - Airtable fields remain blank by design
+
+### 4.3 Recorder Database Retention Policy
+
+**Purpose**
+
+The Home Assistant recorder database (`home-assistant_v2.db`) stores telemetry from all sensors during the day. Without retention limits, this database can grow to multi-gigabyte sizes, consuming unnecessary disk space and slowing down Home Assistant operations.
+
+**Configured Retention**
+
+The system is configured with a 14-day retention policy in `configuration.yaml`:
+
+```yaml
+recorder:
+  purge_keep_days: 14
+  commit_interval: 60
+  auto_purge: true
+```
+
+**What These Settings Mean:**
+
+- **purge_keep_days: 14** — Retain only the last 14 days of detailed telemetry
+- **commit_interval: 60** — Write to database every 60 seconds (reduces disk I/O)
+- **auto_purge: true** — Automatically purge old data daily at 4:12 AM local time
+
+**Expected Database Size**
+
+With 12 thermostats reporting power/energy data every 20-30 seconds:
+- **Without retention:** Database can grow to 9+ GB over time
+- **With 14-day retention:** Steady-state size is approximately 500 MB - 1 GB
+- **With 7-day retention:** Approximately 300-500 MB
+
+**Why 14 Days Is Conservative**
+
+Since Airtable WX table is the system of record and daily rollups run 3 times per night (00:30, 02:00, 04:30), the system only strictly needs 1-2 days of telemetry for recovery purposes. The 14-day retention provides a substantial safety margin for:
+- Troubleshooting unexpected issues
+- Manual backfills if rollup automation fails
+- Diagnostic analysis of sensor behavior
+
+**Operational History**
+
+- **2025-12-29:** Database reached 9.2 GB before retention policy was enforced
+- **2025-12-29:** Manual purge with 7-day retention reduced database to 367 MB
+- **Ongoing:** Auto-purge runs daily at 4:12 AM, maintaining database at ~500-700 MB
+
+**Manual Purge Procedure**
+
+If manual cleanup is needed (e.g., after configuration changes or to reduce retention further):
+
+Via Home Assistant UI:
+1. Developer Tools → Actions
+2. Service: `recorder.purge`
+3. Switch to UI mode
+4. Set `keep_days` and enable `repack`
+5. Click "Perform action"
+
+Via command line:
+```bash
+docker exec homeassistant python -m homeassistant.components.recorder.util purge --keep-days 7 --repack
+```
+
+**Note:** Purge operations take 15-45 minutes depending on database size and will cause Home Assistant to be briefly slower during execution.
+
+**Verification**
+
+Check current database size:
+```bash
+ls -lh /path/to/home-assistant_v2.db
+```
+
+Monitor auto-purge logs:
+```bash
+docker logs homeassistant | grep -i "purge completed"
+```
+
+Expected log output after daily auto-purge:
+```
+Recorder: Purge completed, removed XXXXX states and XXXXX events
+```
+
+**Safety Considerations**
+
+This retention policy is safe because:
+1. Airtable WX table is the authoritative system of record
+2. Daily rollups capture all energy data before purge runs
+3. Multiple overnight rollup runs provide redundancy
+4. 14 days provides ample recovery margin (only 1-2 days strictly needed)
 
 ---
 
