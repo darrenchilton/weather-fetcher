@@ -507,6 +507,81 @@ If Airtable tooling or logs indicate {Therm Efficiency Index (Derived)} is a Num
 - Optional: add a separate numeric KPI field (e.g., {Therm Efficiency KPI (Derived)}) for a single daily scalar, leaving the per-zone map in the text field.
 - If a Number field with the same name exists, rename one of the duplicates to remove ambiguity and update scripts to reference the intended field.
 
+## 5.5 Therm Zone Daily Projection (Efficiency Monitoring Layer)
+
+### 5.5.1 Purpose
+
+The WX table is the authoritative daily ledger. For monitoring and visualization, we maintain a **derived projection table** named **Therm Zone Daily** that materializes **one record per (Date, Zone)**.
+
+This table exists to support:
+
+- Time-series dashboards and Interfaces
+- Zone-to-zone efficiency comparison
+- Clean chart semantics (no JSON parsing in Interfaces)
+- Separation between computation (WX enrichment) and consumption (analytics)
+
+Therm Zone Daily is a *projection*, not a source of truth. It should be treated as **read-only** outside its population automation.
+
+### 5.5.2 Data Model
+
+Each Therm Zone Daily record corresponds to one local calendar day and one thermostat zone.
+
+Key fields:
+
+- **Date** (local day)
+- **Zone**
+- **WX Record** (link to the authoritative WX row)
+- **kWh Auto**
+- **Degree Hours**
+- **Setpoint Hours**
+- **Efficiency Index** (kWh per degree-hour)
+- **SP Source** (Observed / CarriedForward / Stale)
+- **SP Changes Count**
+- **DQ Status**
+- **Usage Type**
+- **Include in Trend?** (optional gating field used by dashboards)
+
+### 5.5.3 Population Mechanism (Daily Projection Automation)
+
+A dedicated Airtable Automation script runs after Therm SP enrichment and:
+
+1. Locates the WX record for the target day (yesterday, local time zone)
+2. Reads per-zone derived JSON fields written by Therm SP (degree-hours, setpoint-hours, efficiency index, source, changes)
+3. Explodes those per-zone maps into one row per zone
+4. **Upserts** by natural key: **(Date, Zone)** (idempotent; safe to re-run)
+
+A one-time range backfill can be executed using the same upsert approach to populate historical Therm Zone Daily rows (historical availability currently back to **2025-12-16**).
+
+### 5.5.4 Scheduling and Ordering
+
+Current production schedule (local time):
+
+- **06:00 AM** — Therm SP daily recompute (writes derived JSON fields into WX)
+- **08:00 AM** — Therm Zone Daily projection (explodes into per-zone analytics rows)
+
+This ordering ensures all Therm SP derived fields are populated before projection.
+
+Planned enhancement (guardrails):
+- The projection script may assert required Therm SP fields are present and fail loudly if upstream enrichment did not complete.
+
+### 5.5.5 Dashboards and Interfaces
+
+All thermostat efficiency dashboards read **only** from **Therm Zone Daily**.
+
+Primary Interface: **Thermostat Efficiency → Zone Efficiency Trends**
+
+Core views:
+- House-average Efficiency Index (daily)
+- Per-zone Efficiency Index (daily)
+- Total kWh Auto (daily)
+- DQ coverage KPIs (PASS vs Not PASS)
+- Drill-down table of zone-day records
+
+Page-level filters:
+- Date range (default: last 30 days)
+- Usage Type
+- Include in Trend?
+
 ## 6. Weather Normalization (HDD)
 
 ### 6.1 Heating Degree Days
