@@ -132,6 +132,17 @@ AIRTABLE_BASE_ID=your_base_id
 
 * `temp_diff_celsius` (Formula) - `{temp} - {om_temp}`
 
+## Thermostat Efficiency Monitoring
+
+This project also supports thermostat efficiency analytics built on Airtable:
+
+- **Therm SP enrichment (06:00 AM local):** derives per-zone setpoint timelines, degree-hours, and an **Efficiency Index** (kWh per degree-hour) and writes results into **WX**.
+- **Therm Zone Daily projection (08:00 AM local):** explodes derived per-zone maps into **Therm Zone Daily** (one row per date and zone) for charting and Interfaces.
+
+Dashboards/Interfaces read exclusively from **Therm Zone Daily** (not from JSON fields in WX).
+
+See **architecture_and_runbook.md** for the full technical specification and runbook.
+
 ## System Status
 
 * **Current Status**: ✅ Fully operational
