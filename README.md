@@ -136,3 +136,44 @@ AIRTABLE_BASE_ID=your_base_id
 
 * **Current Status**: ✅ Fully operational
 * **Location**: Hensonville, NY (ZIP 12439)
+
+* ## Thermostat Analytics (Setpoint Timeline & Efficiency)
+
+In addition to weather ingestion and Home Assistant rollups, the **WX table also serves as the computation surface for daily thermostat analytics**.
+
+These analytics are implemented as **Airtable Automations**, not external services.
+
+### What is computed
+
+For each WX date:
+
+- Effective thermostat **setpoint timeline** per zone
+- **Setpoint-hours** and **degree-hours** (vs `{om_temp}`)
+- Per-zone **heater efficiency index** (kWh / °C·hr)
+- Provenance flags (Observed / CarriedForward / Stale)
+- Human-readable daily summary
+
+### How it runs
+
+Two Airtable automations exist:
+
+1. **Manual recompute**
+   - Triggered by a checkbox on the WX record
+   - Used for validation and backfills
+
+2. **Daily scheduled recompute**
+   - Runs each morning
+   - Computes **yesterday (America/New_York)**
+   - Updates the existing WX record for that date
+
+### Design principles
+
+- WX records are **never created** by thermostat analytics
+- Weather ingestion and thermostat analytics are **decoupled**
+- All thermostat math is **timeline-based**, not snapshot-based
+- JSON fields are used for per-zone outputs; no formulas are required
+
+Full details, field contracts, and scripts are documented in:
+
+➡ **architecture_and_runbook.md**
+
