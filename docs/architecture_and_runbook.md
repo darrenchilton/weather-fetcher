@@ -382,11 +382,21 @@ This process is explicitly non-alerting and does not affect DQ.
 
 ### 5.4.2 Output Model (script-owned fields in WX)
 
-The setpoint rollup writes the following script-owned fields on the target WX record:
+The Therm SP rollup writes the following script-owned fields on the target WX record (all JSON serialized to text unless noted):
 
-{Therm SP Start (Derived)} — JSON map: zone → setpoint at start of day
+{Therm SP Start (Derived)} — JSON map: zone → setpoint at start of day (snapshot)
 
-{Therm SP End (Derived)} — JSON map: zone → setpoint at end of day
+{Therm SP End (Derived)} — JSON map: zone → setpoint at end of day (snapshot)
+
+{Therm SP Timeline (Derived)} — JSON map: zone → list of intervals, each {from,to,sp} in ISO-8601 UTC timestamps; this is the authoritative “setpoint at any time” representation
+
+{Therm SP Setpoint-Hours (Derived)} — JSON map: zone → {totalHours,setpointHours,hoursBySetpoint}
+
+{Therm SP Degree-Hours (Derived)} — JSON map: zone → degree-hours, where each interval contributes MAX(0, sp − {om_temp}) × hours
+
+{Therm SP Degree-Hours by Setpoint (Derived)} — JSON map: zone → map(setpoint → degree-hours)
+
+{Therm Efficiency Index (Derived)} — JSON map: zone → (kWh / degree-hours) or null when unavailable (stale, missing kWh, or degree-hours ≤ 0)
 
 {Therm SP Source (Derived)} — JSON map: zone → Observed | CarriedForward | Stale
 
@@ -394,11 +404,13 @@ The setpoint rollup writes the following script-owned fields on the target WX re
 
 {Therm SP Stale Zones (Derived)} — comma-separated list of zones considered stale
 
-{Therm SP Summary (Derived)} — human-readable diagnostic summary (includes counters)
+{Therm SP Summary (Derived)} — human-readable diagnostic summary (includes counters and per-zone rollup highlights)
 
 {Therm SP Last Run} — timestamp of the most recent run
 
+Ownership rule:
 These fields are owned exclusively by the Therm SP script and must not be written by other producers.
+
 
 ### 5.4.3 Data Sources and Semantics
 
@@ -453,6 +465,47 @@ Therm SP is not used for DQ alerting and does not imply correctness or incorrect
 Validation (Manual vs Auto energy comparisons) remains semantically separate from Therm SP.
 
 ---
+
+### 5.4.6 Airtable Automations (Manual vs Daily Scheduled)
+
+Two Airtable automations exist for Therm SP enrichment:
+
+#### A) Manual recompute (checkbox-triggered)
+
+Purpose:
+- Recompute Therm SP fields for a specific WX record (typically during development or one-off backfills).
+
+Mechanism:
+- Trigger: WX checkbox field {Temp Therm Calc} set to true
+- Input: wxRecordId (record ID of the triggering WX record)
+- Behavior: recomputes the target record’s date and writes all derived Therm SP outputs
+- Post-condition: clears {Temp Therm Calc} back to false (success path)
+
+#### B) Daily scheduled recompute (production)
+
+Purpose:
+- Recompute Therm SP fields for the prior day automatically (steady-state production path).
+
+Mechanism:
+- Trigger: Scheduled automation (daily, morning, after overnight HA rollups are complete)
+- Target day: yesterday in local time zone (America/New_York)
+- Record selection: locate the WX record whose {datetime} matches the target day (day-level match; supports both date-type and YYYY-MM-DD strings)
+- Behavior: recomputes and overwrites the same derived Therm SP outputs for that WX record
+- Post-condition: does not depend on, and should not modify, {Temp Therm Calc}
+
+Operational properties:
+- Deterministic and idempotent: safe to re-run and safe to run multiple times per day for the same target date.
+- Supports optional backfill override (recommended): accept an input variable targetDate="YYYY-MM-DD" to force recompute of a specific day.
+
+#### Field type note: {Therm Efficiency Index (Derived)}
+
+The Therm SP scripts write {Therm Efficiency Index (Derived)} as a JSON map (zone → number|null). This field should therefore be a text-bearing field (single-line text or long text).
+
+If Airtable tooling or logs indicate {Therm Efficiency Index (Derived)} is a Number field, treat this as a schema inconsistency and resolve via one of these approaches:
+
+- Preferred: ensure {Therm Efficiency Index (Derived)} is a long text field and store the per-zone JSON map there.
+- Optional: add a separate numeric KPI field (e.g., {Therm Efficiency KPI (Derived)}) for a single daily scalar, leaving the per-zone map in the text field.
+- If a Number field with the same name exists, rename one of the duplicates to remove ambiguity and update scripts to reference the intended field.
 
 ## 6. Weather Normalization (HDD)
 
