@@ -83,6 +83,40 @@ Home Assistant updates **existing daily WX records** (keyed by `{datetime}`) wit
 
 Implementation details live in [`homeassistant/`](homeassistant/).
 
+### Home Assistant Ingestion Readiness (“I’m Done” Signal)
+
+Because Home Assistant ingestion may run multiple passes overnight, downstream Airtable automations must not assume completion based on time alone.
+
+The WX table includes a readiness guard:
+
+Field: HA Rollup Present? (Formula, numeric 0/1)
+
+IF(
+  OR(
+    COUNTA({Thermostat Settings (Auto)}) > 0,
+    COUNTA({Data Source}) > 0
+  ),
+  1,
+  0
+)
+
+
+Semantics:
+
+1 → Home Assistant has written at least one authoritative artifact for the day
+
+0 → HA ingestion missing or failed
+
+This field is treated as the system’s canonical “HA ingestion complete” signal.
+
+A dedicated Airtable view (ALERT — HA Rollup Missing) filters for:
+
+{datetime} = yesterday (America/New_York)
+
+{HA Rollup Present?} = 0
+
+An automation monitors this view and sends a Slack alert if HA ingestion did not occur.
+
 ## Setup
 
 ### 1. GitHub Repository
@@ -143,6 +177,19 @@ Dashboards/Interfaces read exclusively from **Therm Zone Daily** (not from JSON 
 
 See **architecture_and_runbook.md** for the full technical specification and runbook.
 
+### Daily Thermostat Analytics Schedule (EST)
+
+Thermostat analytics run after Home Assistant ingestion has had time to complete:
+
+Time (EST)	Automation	Description
+03:15	Therm State Changes	Build per-zone setpoint timelines and derived metrics
+03:30	Derive Usage Type	Classify daily usage context from timelines
+03:45	Data Quality	Validate presence and integrity of HA kWh data
+04:15	Therm Zone Daily	Explode per-zone daily records
+
+Home Assistant ingestion typically begins around 02:30am and may retry.
+The above schedule intentionally prioritizes correctness over immediacy.
+
 ## System Status
 
 * **Current Status**: ✅ Fully operational
@@ -183,6 +230,24 @@ Two Airtable automations exist:
 - Weather ingestion and thermostat analytics are **decoupled**
 - All thermostat math is **timeline-based**, not snapshot-based
 - JSON fields are used for per-zone outputs; no formulas are required
+
+### Operational Recovery Notes
+
+If a Slack alert indicates missing HA ingestion for yesterday:
+Verify Home Assistant ingestion status and logs
+Allow HA to complete additional passes if still running
+Once {HA Rollup Present?} flips to 1, re-run the following Airtable automations in order:
+Therm State Changes
+Derive Usage Type
+Data Quality
+Therm Zone Daily
+
+All thermostat-related automations are idempotent and safe to re-run.
+
+Performance note (future)
+
+Some Airtable automations currently load full tables using selectRecordsAsync().
+This is acceptable at current scale but may be optimized with filtered queries or views if table sizes grow materially.
 
 Full details, field contracts, and scripts are documented in:
 
