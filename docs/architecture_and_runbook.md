@@ -582,6 +582,73 @@ Page-level filters:
 - Usage Type
 - Include in Trend?
 
+### 5.6 Usage Type Derivation (Automated Occupancy Classification)
+
+### 5.6.1 Purpose
+
+The {Usage Type} field encodes high-level household occupancy and heating intent for a given day. It is used to:
+Provide context for reporting and dashboards
+Gate validation expectations (manual vs auto)
+Enable human-readable summaries of system behavior
+Usage Type is descriptive, not analytical:
+It does not affect energy efficiency calculations
+It does not participate in DQ logic
+It exists to help humans interpret daily records
+
+### 5.6.2 Source of Truth
+
+As of January 2026, {Usage Type} is fully automated and derived exclusively from:
+
+{Therm SP Timeline (Derived)}
+
+
+This timeline is the authoritative per-zone representation of:
+
+When a thermostat was ON (setpoint > 0)
+
+When it was OFF (setpoint = 0)
+
+No additional derived fields (e.g., boolean “zone on/off” helpers) are required.
+
+### 5.6.3 Classification Rules
+
+Usage Type is assigned once per WX record using the following deterministic rules:
+
+Usage Type	Definition
+No Usage	All zones have setpoint = 0 for the entire day (system fully off)
+System Off	Alias of No Usage; typically used for summer / heating-disabled periods
+Enabled, No Heat Needed	At least one zone enabled (non-zero setpoint), but total kWh = 0 (warm day)
+Empty House	Master and MANC both OFF all day; at least one other zone may be enabled at setback
+Guests	Guest Room has setpoint > 0 at any point during the day
+Just DC	Master ON at any point; MANC OFF all day
+All	Master ON at any point AND MANC ON at any point
+
+Edge cases (e.g., spouse visiting without child) are intentionally ignored.
+Classification is based strictly on thermostat behavior, not inferred human presence.
+
+### 5.6.4 Temporal Semantics
+
+A “day” is defined as midnight to midnight in America/New_York
+
+Internally, this corresponds to 05:00Z → 05:00Z during winter
+
+Timeline intervals use UTC timestamps but are interpreted in local-day context
+
+### 5.6.5 Automation Ordering
+
+Correct sequencing is required for accuracy:
+
+Therm SP Daily Recompute
+Writes {Therm SP Timeline (Derived)}
+
+Usage Type Derivation Automation
+Reads timeline and writes {Usage Type}
+
+Therm Zone Daily Projection
+Copies {Usage Type} into per-zone rows
+
+The Usage Type automation is safe to re-run and overwrites the same field deterministically.
+
 ## 6. Weather Normalization (HDD)
 
 ### 6.1 Heating Degree Days
