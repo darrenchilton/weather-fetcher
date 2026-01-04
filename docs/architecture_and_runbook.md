@@ -456,6 +456,26 @@ Operational guidance:
 
 The daily scheduled Therm SP run is safe to re-run; it is deterministic and overwrites the same derived fields for the target day.
 
+Current Production Automation Schedule (EST)
+
+As of 2026-01-04, automations are intentionally staggered to accommodate HA ingestion retries:
+
+Time (EST)	Automation	Purpose
+03:15	Therm State Changes	Materialize Therm SP derived fields
+03:30	Derive Usage Type	Classify occupancy from SP timeline
+03:45	Data Quality	Validate HA kWh completeness
+04:15	Therm Zone Daily	Explode per-zone analytics rows
+~06:30	HA Rollup Missing Alert	Detect ingestion failures
+Rationale
+
+Home Assistant begins ingestion around ~02:30am and may retry
+
+Airtable automations must not race HA
+
+Usage Type, DQ, and projections all depend on HA-derived fields
+
+The system favors correctness over immediacy.
+
 ### 5.4.5 Relationship to Energy Rollups and Validation
 
 Therm SP provides setpoint context for later analysis of energy efficiency and behavior.
@@ -648,6 +668,53 @@ Therm Zone Daily Projection
 Copies {Usage Type} into per-zone rows
 
 The Usage Type automation is safe to re-run and overwrites the same field deterministically.
+
+### 5.7 HA Rollup Completion Guard (Readiness Signal)
+Purpose
+
+Because Home Assistant ingestion and rollup are eventually consistent and may complete after multiple internal passes, the system uses an explicit readiness signal to indicate that Home Assistant–derived data has arrived in Airtable for a given day.
+
+This avoids false downstream failures caused by automations running before HA ingestion has completed.
+
+Mechanism: {HA Rollup Present?}
+
+The WX table includes a formula field:
+
+Field: {HA Rollup Present?}
+Type: Formula (numeric: 1 or 0)
+
+Formula:
+
+IF(
+  OR(
+    COUNTA({Thermostat Settings (Auto)}) > 0,
+    COUNTA({Data Source}) > 0
+  ),
+  1,
+  0
+)
+
+Semantics
+
+Returns 1 if any Home Assistant rollup evidence is present
+
+Returns 0 if HA ingestion has not occurred or failed
+
+This is a readiness signal only, not a correctness assertion
+
+Design Rationale
+
+HA rollups may complete after multiple internal retries
+
+Some HA automations run at ~02:30am and again later
+
+Downstream Airtable automations must not assume HA is complete based solely on time
+
+This guard allows the system to explicitly distinguish:
+
+Condition	Meaning
+HA Rollup Present? = 1	HA ingestion completed at least once
+HA Rollup Present? = 0	HA ingestion missing or failed
 
 ## 6. Weather Normalization (HDD)
 
@@ -1193,6 +1260,32 @@ Once written to Airtable, data is durable and independent of Home Assistant.
 - Short power outage: no data loss
 - Machine failure + recorder loss: potential loss of un-materialized days only
 
+### 10.3 HA Rollup Missing — Recovery Procedure
+
+If the HA Rollup Missing alert fires:
+
+Step 1 — Verify HA ingestion
+Check Home Assistant logs
+Confirm recorder database is present and recent
+Confirm rollup scripts executed
+
+Step 2 — Re-run HA rollup (if needed)
+Trigger HA rollup manually or allow next retry window
+Confirm {HA Rollup Present?} flips to 1
+
+Step 3 — Re-run dependent automations (in order)
+Therm State Changes
+Derive Usage Type
+Data Quality
+Therm Zone Daily
+
+All scripts are idempotent and safe to re-run.
+
+Step 4 — Confirm clearance
+ALERT view empty
+No Slack alert next cycle
+WX record fully populated
+
 ---
 
 ## 11. GitHub Roadmap (Planned)
@@ -1213,6 +1306,42 @@ This further reduces local state risk.
 - Monitoring: operational
 - Validation: in progress
 - Manual entry retirement: pending confidence trends
+
+- HA Rollup Missing Alert (Daily Watchdog)
+Purpose
+
+A daily watchdog automation verifies that HA ingestion completed for the prior day.
+If not, it alerts the operator so corrective action can be taken before downstream analytics are trusted.
+
+Airtable View (Alert Source)
+View name: ALERT — HA Rollup Missing
+
+Filter logic:
+{datetime} is yesterday (America/New_York)
+{HA Rollup Present?} = 0
+This view represents:
+“Yesterday’s WX record exists, but HA rollup never materialized.”
+
+Automation Behavior
+Trigger: Scheduled (daily)
+Typical time: After all HA rollup retries should have completed (e.g., ~06:30am EST)
+
+Action:
+If record count > 0 → send Slack alert
+Else → no action
+Alert Semantics
+
+This alert means one of the following:
+HA ingestion did not run
+HA ingestion ran but failed before writing to Airtable
+Recorder data unavailable for the target window
+
+It does not imply:
+Bad energy data
+Therm SP failure
+Validation failure
+
+It is strictly an ingestion-completeness guard.
 
 ---
 
