@@ -490,6 +490,16 @@ Validation (Manual vs Auto energy comparisons) remains semantically separate fro
 
 Two Airtable automations exist for Therm SP enrichment:
 
+### 5.4.7 Interpretation of “No Thermostat Changes”
+
+If no thermostat change events occur on a given day, this does not indicate missing data.
+
+The WX record for that day already contains the authoritative thermostat state via the Therm SP derived fields, in particular {Therm SP Timeline (Derived)}, which defines the effective setpoint for all zones over the full day.
+
+In this case, “no changes” simply means that setpoints were carried forward unchanged for the duration of the day.
+
+
+
 #### A) Manual recompute (checkbox-triggered)
 
 Purpose:
