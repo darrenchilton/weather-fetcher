@@ -1296,6 +1296,163 @@ ALERT view empty
 No Slack alert next cycle
 WX record fully populated
 
+### 10.4 Auto kWh Backfill Policy (Mysa-Based Recovery)
+as of 15/2025 this plan has not been operationalized. The plan is to do this some time in the future.
+
+### 10.4.1 Purpose
+
+This section defines the authoritative recovery procedure when Home Assistant (HA) telemetry is unavailable for one or more days due to host outage (e.g., Plex Mac mini down) and the HA recorder database cannot be used to reconstruct the missing day(s).
+
+The objective is to restore continuity of the Auto kWh ledger so that downstream analytics, projections, and dashboards remain complete and operational.
+
+This policy is explicitly operational, not semantic: it prioritizes continuity and recoverability over strict measurement-model purity.
+
+### 10.4.2 Canonical Rule
+
+Auto kWh fields represent the best available authoritative daily energy values.
+
+Source precedence:
+
+Primary source (normal operation):
+Home Assistant daily rollup (device-grounded measurement)
+
+Fallback source (outage recovery):
+Mysa app → Home → Breakdown daily kWh values
+
+When fallback is used, Auto fields are overwritten with Mysa values and the provenance must be explicitly recorded.
+
+### 10.4.3 Preconditions for Using Mysa Backfill
+
+Mysa backfill into Auto fields is permitted only if all of the following are true:
+
+{HA Rollup Present?} = 0 for the target day
+
+HA recorder database does not contain sufficient telemetry to re-run the daily rollup
+
+The outage window is confirmed (e.g., host down, container stopped, disk failure)
+
+If HA telemetry is still available, HA rollup must be re-run and Mysa backfill must not be used.
+
+### 10.4.4 Required Fields (WX Table)
+
+The following fields are required to support auditable backfill:
+
+{Auto Source} (Single Select — Required)
+
+Allowed values:
+
+HA — Written by Home Assistant rollup
+
+Mysa Backfill — Manually entered from Mysa Home → Breakdown
+
+Mixed / Partial — Some zones HA, some zones Mysa
+
+Unknown — Legacy or ambiguous provenance
+
+{Auto Backfill Notes} (Long Text — Required when backfilled)
+
+Freeform but concise justification, including:
+
+Reason HA data is unavailable
+
+Confirmation that Mysa Home → Breakdown was used
+
+Any known caveats (partial day, app outage, etc.)
+
+Example:
+
+“HA down due to Plex outage; recorder unavailable. Auto kWh backfilled from Mysa Home → Breakdown.”
+
+### 10.4.5 Backfill Procedure (Step-by-Step)
+
+For each affected WX date:
+
+Step 1 — Verify HA recovery is not possible
+
+Confirm {HA Rollup Present?} = 0
+
+Confirm recorder DB cannot reconstruct the day
+
+Step 2 — Extract Mysa daily values
+
+Open Mysa app
+
+Navigate to Home → Breakdown
+
+Select the target date
+
+Record per-zone daily kWh values
+
+Note: Device-level values (zone detail view) must not be used.
+The Home → Breakdown view is the canonical fallback baseline.
+
+Step 3 — Write Auto fields
+
+Enter values directly into <Zone> KWH (Auto) fields
+
+Do not populate manual-only fields
+
+Leave HA-owned non-kWh artifacts (e.g., Thermostat Settings) unchanged unless explicitly required
+
+Step 4 — Record provenance
+
+Set {Auto Source} = Mysa Backfill
+
+Populate {Auto Backfill Notes}
+
+Step 5 — Close operational alerts
+
+The HA Rollup Missing alert represents ingestion failure, not ledger completeness
+
+Either:
+
+acknowledge the alert operationally, or
+
+filter alert views to exclude {Auto Source} = Mysa Backfill
+
+The alert must not be treated as unresolved once backfill is complete.
+
+### 10.4.6 Downstream Semantics
+Data Quality (DQ) Gate
+
+On backfilled days:
+
+DQ PASS indicates Auto ledger completeness, not HA pipeline health
+
+HA ingestion health is assessed separately via {HA Rollup Present?}
+
+This distinction is intentional.
+
+Analytics & Projections
+
+Therm Zone Daily, efficiency metrics, and dashboards may include backfilled days
+
+Dashboards should allow filtering or annotation by {Auto Source} where interpretation matters
+
+Backfilled days are expected to be rare and operationally justified.
+
+### 10.4.7 Prohibited Actions
+
+Do not overwrite HA-written Auto values with Mysa values
+
+Do not backfill if HA telemetry can be recovered
+
+Do not leave provenance fields blank
+
+Do not copy Mysa values into Manual-only fields when Auto fields are missing
+
+### 10.4.8 Rationale
+
+This policy accepts that:
+
+HA Auto values and Mysa Breakdown values have different measurement semantics
+
+During outages, continuity is more valuable than purity
+
+Explicit provenance preserves analytical honesty
+
+This approach allows the system to recover cleanly from host outages without architectural redesign, while keeping the system auditable and interpretable over time.
+
 ---
 
 ## 11. GitHub Roadmap (Planned)
