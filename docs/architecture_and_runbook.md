@@ -1510,6 +1510,8 @@ Validation failure
 
 It is strictly an ingestion-completeness guard.
 
+2026-01-07 — Transient DNS / outbound connectivity interruption. Home Assistant logged repeated ClientConnectorDNSError (Met.no) and Network unreachable (HACS / HA alerts) errors following a container restart. Host networking and DNS remained functional; subsequent in-container testing confirmed outbound routing, DNS resolution, and HTTPS connectivity were healthy. Recorder database recovered cleanly (Ended unfinished session), no rollup failures were observed, and no Airtable ingestion gaps occurred. Errors ceased without configuration changes and did not recur after network stabilization. Treated as a transient DNS/upstream connectivity event during restart; no data loss.
+
 ---
 
 **End of document**
