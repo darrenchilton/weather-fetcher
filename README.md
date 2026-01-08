@@ -64,6 +64,29 @@ weather-fetcher/
 
 In addition to the weather ingestion pipelines (Visual Crossing and Open-Meteo), the **WX table is also enriched by Home Assistant automations**.
 
+### Home Assistant Rollup Execution Model (Credentials & Environment)
+
+Home Assistant rollup scripts (thermostat rollups, indoor environment rollups) **require runtime environment variables** to authenticate against the Home Assistant API.
+
+These variables are:
+
+- `HA_BASE` — Base URL of the Home Assistant API (typically `http://127.0.0.1:8123`)
+- `HA_TOKEN` — Long-lived access token used for HA API authentication
+
+**Important:**  
+These variables are **not globally available** inside the Home Assistant container.
+
+They are injected **only at execution time**, using one of the following mechanisms:
+
+1. **Production path (normal operation)**  
+   Environment variables are injected inline via `shell_command` entries defined in `configuration.yaml`, and executed by Home Assistant automations.
+
+2. **Manual troubleshooting path**  
+   Environment variables must be explicitly provided when running scripts via `docker exec` (either inline or via `-e` flags).
+
+Running a rollup script **without** these variables will fail immediately with:
+
+
 Home Assistant updates **existing daily WX records** (keyed by `{datetime}`) with:
 
 - `Thermostat Settings (Auto)` — daily thermostat event rollups
