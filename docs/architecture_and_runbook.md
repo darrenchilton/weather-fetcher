@@ -345,6 +345,102 @@ This retention policy is safe because:
 
 ## 5. Daily Rollup (Materialization)
 
+## 5.0 Rollup Execution Environment & Credential Model
+
+All Home Assistant rollup scripts (thermostat rollups, indoor environment rollups) authenticate to Home Assistant via **runtime-injected environment variables**.
+
+### Required Environment Variables
+
+Each rollup script requires the following environment variables at execution time:
+
+- `HA_BASE` — Home Assistant API base URL  
+  Example: `http://127.0.0.1:8123`
+
+- `HA_TOKEN` — Home Assistant long-lived access token  
+  Used for all `/api/*` requests (history, states, etc.)
+
+These variables are **mandatory**. Scripts do not attempt fallback discovery, config parsing, or secret loading.
+
+If either variable is missing, the script terminates immediately.
+
+### Why These Variables Are Not Global
+
+The Home Assistant Docker container does **not** expose these values globally by design.
+
+They are injected only at execution time to ensure that:
+- Credentials are scoped to the specific command being run
+- Tokens are not ambiently available to unrelated processes
+- Manual execution paths are explicit and auditable
+
+There is intentionally:
+- No `.env` file
+- No `secrets.yaml` reference
+- No alternative credential loading mechanism
+### Execution Modes (Production vs Manual)
+
+### 📌 INSERT BLOCK — *Common Failure Modes & Interpretation*
+
+```md
+### Common Failure Modes & How to Interpret Them
+
+| Symptom | Meaning | Action |
+|-------|--------|--------|
+| `ERROR: missing env var HA_TOKEN` | Script was executed without environment-variable injection | Re-run via `shell_command` or provide `HA_BASE` and `HA_TOKEN` inline |
+| `HTTP Error 401: Unauthorized` | Token is invalid, revoked, or expired | Validate token manually (see below); generate a new long-lived token if needed |
+| Script runs but writes nothing | Target WX record not found or no qualifying data | Check date targeting and recorder coverage |
+| Script works via automation but fails manually | Manual execution missing env vars | This is expected; manual path must inject env vars explicitly |
+
+These errors do **not** indicate bugs in the rollup scripts.  
+They indicate execution-context mismatches.
+
+Rollup scripts may be executed in three distinct contexts. Understanding the differences is critical for correct troubleshooting.
+
+#### 1) Shell Command Execution (Production)
+
+This is the **canonical production path**.
+
+- Defined in `configuration.yaml` under `shell_command`
+- Environment variables (`HA_BASE`, `HA_TOKEN`) are injected inline
+- Invoked by Home Assistant automations or manually via Developer Tools → Actions
+
+Example (illustrative):
+
+```yaml
+shell_command:
+  ha_rollup_yesterday: >
+    HA_BASE=http://127.0.0.1:8123
+    HA_TOKEN=***
+    python3 /config/scripts/thermostat_rollup_write_yesterday.py
+This is the only path where environment injection is automatic.
+
+2) docker exec (Manual / Troubleshooting)
+
+When running a script manually inside the container, no environment variables are present by default.
+
+They must be supplied explicitly:
+
+docker exec homeassistant bash -lc '
+  HA_BASE=http://127.0.0.1:8123
+  HA_TOKEN=***
+  python3 /config/scripts/thermostat_rollup_write_yesterday.py
+
+Failure to do so will result in immediate startup errors.
+
+3) Host Shell Execution (Incorrect / Unsupported)
+
+Running a rollup script directly from the macOS host shell (outside Docker) is not supported.
+
+Reasons:
+
+/config paths do not exist on the host
+
+Home Assistant recorder database is not accessible
+
+Environment variables are not injected
+
+Network assumptions differ
+
+Any failures observed in this mode are non-actionable.
 ### 5.1 Timing
 
 - Target date: **yesterday (local time)**
@@ -354,6 +450,56 @@ Scheduled runs:
 - 00:30 local — primary
 - 02:00 local — late-event catch-up
 - 04:30 local — safety net
+### Canonical Token Validation
+
+Before troubleshooting rollup logic, always validate the Home Assistant token directly.
+
+From the host or container:
+
+```bash
+curl -H "Authorization: Bearer <HA_TOKEN>" \
+  http://127.0.0.1:8123/api/
+Expected result:
+
+HTTP 200 → token is valid
+
+HTTP 401 → token is invalid or revoked
+
+Do not proceed with rollup debugging until this check passes.
+
+Canonical Manual Rollup Pattern
+For manual testing or backfill validation, use this pattern:
+
+bash
+Copy code
+docker exec homeassistant bash -lc '
+  HA_BASE=http://127.0.0.1:8123
+  HA_TOKEN=***
+  python3 /config/scripts/<rollup_script>.py
+'
+This exactly mirrors the production execution environment.
+
+yaml
+Copy code
+
+---
+
+# Resulting Outcome (Goal Check)
+
+After these insertions, a future reader will immediately understand:
+
+- **Why env vars are required** (explicit auth boundary)
+- **Where they come from** (shell_command injection only)
+- **Why manual runs fail** (missing runtime injection)
+- **How to debug safely** (token check + canonical docker exec pattern)
+
+No redesign.  
+No new secrets.  
+No ambiguity.
+
+If you want, next we can:
+- Generate a **diff-style patch** you can apply verbatim, or
+- Draft a **one-page “Rollup Debugging Quick Reference”** extracted from this material for operators.
 
 ### 5.2 kWh Rollup Logic
 
