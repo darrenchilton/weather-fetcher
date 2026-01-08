@@ -512,6 +512,20 @@ Action sequence (order matters only for log readability):
 This ensures that indoor temperature and humidity statistics are materialized
 whenever Home Assistant energy data is successfully written.
 
+### Log File
+
+Primary execution log:
+- `/config/ha_indoor_env_write.log`
+
+Successful runs emit a JSON object containing:
+- `"ok": true`
+- `date_local`
+- `wx_record_id`
+- entity counts and warning count
+
+This log is the authoritative proof of successful execution.
+
+
 
 ---
 ### 5.2 kWh Rollup Logic
