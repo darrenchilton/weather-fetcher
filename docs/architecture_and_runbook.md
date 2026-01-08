@@ -483,24 +483,6 @@ yaml
 Copy code
 
 ---
-
-# Resulting Outcome (Goal Check)
-
-After these insertions, a future reader will immediately understand:
-
-- **Why env vars are required** (explicit auth boundary)
-- **Where they come from** (shell_command injection only)
-- **Why manual runs fail** (missing runtime injection)
-- **How to debug safely** (token check + canonical docker exec pattern)
-
-No redesign.  
-No new secrets.  
-No ambiguity.
-
-If you want, next we can:
-- Generate a **diff-style patch** you can apply verbatim, or
-- Draft a **one-page “Rollup Debugging Quick Reference”** extracted from this material for operators.
-
 ### 5.2 kWh Rollup Logic
 
 - Source sensors: `sensor.<zone>_energy_daily`
@@ -585,6 +567,63 @@ Default: 36 hours (configurable in the automation script)
 Exclusions:
 
 EXCLUDED_ZONES can be provided to exclude zones from all Therm SP computations.
+
+## 5.4.3.5 Indoor Environment Rollup (Temperature & Humidity)
+
+### Purpose
+
+The Indoor Environment Rollup materializes **indoor temperature and humidity telemetry**
+from Home Assistant into the daily Airtable WX record.
+
+This rollup is informational and descriptive:
+- It does **not** affect energy calculations
+- It does **not** participate in DQ or validation
+- It exists to provide historical indoor context alongside weather and energy data
+
+### Script
+
+- Path (container):  
+  `/config/scripts/ha_indoor_env_daily_write_yesterday.py`
+
+### Data Sources
+
+- Home Assistant recorder history (`/api/history/period`)
+- Auto-discovered entities:
+  - `*_current_temperature`
+  - `*_current_humidity`
+
+### Computation
+
+For each discovered entity, the script computes:
+- sample count
+- minimum
+- maximum
+- average
+
+### Airtable Outputs (WX table)
+
+The script writes only to these existing fields:
+
+- `{HA Indoor Temperature Stats (Auto)}`
+- `{HA Indoor Humidity Stats (Auto)}`
+- `{HA Indoor Env Summary (Auto)}`
+- `{HA Indoor Env Last Run (Auto)}`
+
+Ownership rule:
+These fields are owned exclusively by the Indoor Environment rollup and must not be written by other producers.
+
+### Target Day
+
+- Always writes **yesterday** (local time)
+- Local timezone: `America/New_York`
+
+### Idempotency
+
+- Deterministic and idempotent
+- Safe to re-run multiple times for the same target day
+- Re-running overwrites the same WX fields
+
+
 
 ### 5.4.4 Automation Trigger and Targeting
 
