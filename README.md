@@ -86,6 +86,18 @@ They are injected **only at execution time**, using one of the following mechani
 
 Running a rollup script **without** these variables will fail immediately with:
 
+ERROR: missing env var HA_TOKEN
+Providing an invalid or revoked token will result in:
+HTTP Error 401: Unauthorized
+
+
+This execution model is **intentional**:
+- There is no `.env` file
+- There is no `secrets.yaml` indirection
+- There is no secondary secrets mechanism
+
+All HA API credentials are injected explicitly at runtime.
+
 
 Home Assistant updates **existing daily WX records** (keyed by `{datetime}`) with:
 
@@ -188,6 +200,11 @@ AIRTABLE_BASE_ID=your_base_id
 **Temperature Comparison (calculated in Airtable):**
 
 * `temp_diff_celsius` (Formula) - `{temp} - {om_temp}`
+
+**Operational note:**  
+Detailed documentation of Home Assistant rollup execution, environment-variable injection, and troubleshooting lives in `architecture_and_runbook.md`.  
+If a manual rollup fails unexpectedly, consult that document before modifying scripts.
+
 
 ## Thermostat Efficiency Monitoring
 
