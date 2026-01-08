@@ -482,6 +482,23 @@ This exactly mirrors the production execution environment.
 yaml
 Copy code
 
+### Automation Wiring (Home Assistant)
+
+The Indoor Environment rollup is invoked by the same Home Assistant automation
+that performs the Thermostat Rollup WRITE step.
+
+Automation ID:
+- `phase7_m3_thermostat_rollup_write_yesterday`
+
+Action sequence (order matters only for log readability):
+
+1. `shell_command.thermostat_rollup_write_yesterday`
+2. `shell_command.ha_indoor_env_write_yesterday`
+
+This ensures that indoor temperature and humidity statistics are materialized
+whenever Home Assistant energy data is successfully written.
+
+
 ---
 ### 5.2 kWh Rollup Logic
 
