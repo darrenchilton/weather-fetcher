@@ -389,6 +389,24 @@ There is intentionally:
 | `HTTP Error 401: Unauthorized` | Token is invalid, revoked, or expired | Validate token manually (see below); generate a new long-lived token if needed |
 | Script runs but writes nothing | Target WX record not found or no qualifying data | Check date targeting and recorder coverage |
 | Script works via automation but fails manually | Manual execution missing env vars | This is expected; manual path must inject env vars explicitly |
+| `HTTP 401` from `/api/` or `automation.reload` | Shell token is missing, truncated, or revoked | Replace HA long-lived token and re-test `/api/` until HTTP 200 |
+
+#### Token Replacement & YAML Reload Gotcha
+
+Home Assistant does **not** automatically reload `automations.yaml` after file edits.
+
+After modifying any automation YAML:
+- You **must** reload automations via:
+  - UI: Developer Tools → YAML → Reload Automations  
+  **or**
+  - API: `POST /api/services/automation/reload`
+
+Failure to reload results in:
+- YAML edits appearing correct on disk
+- Automations continuing to run the previous in-memory definition
+
+This is a common source of false-negative debugging.
+
 
 These errors do **not** indicate bugs in the rollup scripts.  
 They indicate execution-context mismatches.
