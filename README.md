@@ -289,6 +289,82 @@ Performance note (future)
 Some Airtable automations currently load full tables using selectRecordsAsync().
 This is acceptable at current scale but may be optimized with filtered queries or views if table sizes grow materially.
 
+Indoor Environment Rollup (Production Locked)
+
+Script:
+homeassistant/scripts/ha_indoor_env_daily_write_yesterday.py
+
+Status: ✅ Production locked
+
+Purpose
+
+Daily rollup of indoor humidity and temperature metrics from Home Assistant recorder history, written into the existing Airtable WX table.
+
+Behavior
+
+Runs daily and targets yesterday (local midnight → midnight)
+
+Pulls HA history via /api/history/period
+
+Auto-discovers entities:
+
+*_current_humidity
+
+*_current_temperature
+
+Computes per-entity:
+
+samples
+
+min / avg / max
+
+Writes results into existing WX records
+
+Backfill Support
+
+Historical backfill is supported via:
+
+python3 ha_indoor_env_daily_write_yesterday.py --date-local YYYY-MM-DD
+
+
+Backfill uses the same logic and fields as the daily automation.
+
+Airtable Fields Written
+
+HA Indoor Humidity Stats (Auto) — JSON
+
+HA Indoor Temperature Stats (Auto) — JSON
+
+HA Indoor Env Summary (Auto) — JSON
+
+HA Indoor Env Human Summary (Auto) — Long text (human-readable)
+
+HA Indoor Env Last Run (Auto) — Timestamp
+
+Human-Readable Summary
+
+The field HA Indoor Env Human Summary (Auto) provides a single, readable daily summary including:
+
+Per-room min / avg / max for humidity and temperature
+
+Sample counts
+
+Any data-quality warnings
+
+This field is generated in-script (not via Airtable formulas) and is the recommended surface for review and reporting.
+
+Change Policy
+
+This script is considered stable and locked.
+
+Any changes require:
+
+Documentation updates
+
+Explicit approval
+
+Backfill re-validation if logic changes
+
 Full details, field contracts, and scripts are documented in:
 
 ➡ **architecture_and_runbook.md**
