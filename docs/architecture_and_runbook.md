@@ -378,9 +378,6 @@ There is intentionally:
 - No alternative credential loading mechanism
 ### Execution Modes (Production vs Manual)
 
-### 📌 INSERT BLOCK — *Common Failure Modes & Interpretation*
-
-```md
 ### Common Failure Modes & How to Interpret Them
 
 | Symptom | Meaning | Action |
