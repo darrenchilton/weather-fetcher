@@ -477,8 +477,7 @@ curl -H "Authorization: Bearer <HA_TOKEN>" \
 Expected result:
 
 HTTP 200 → token is valid
-
-HTTP 401 → token is invalid or revoked
+HTTP 401 → token is invalid, truncated, or revoked (most often due to partial copy)
 
 Do not proceed with rollup debugging until this check passes.
 
