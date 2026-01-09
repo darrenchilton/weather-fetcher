@@ -1,0 +1,2284 @@
+[
+  {
+    "name": "Date",
+    "options": {
+      "formula": "DATETIME_FORMAT(CONCATENATE({fldo1r4zMsuYl8e7D}),'YYYY-MM-DD')",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldo1r4zMsuYl8e7D"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Test Phase",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "sel4vnuxZ8GsFzEh0",
+          "name": "Phase 1 - DS off"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selMyiBrIQeHwLkYL",
+          "name": "Phase 2 -DS on"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Day of Week",
+    "options": {
+      "formula": "DATETIME_FORMAT({fldo1r4zMsuYl8e7D}, 'dddd')",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldo1r4zMsuYl8e7D"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Usage Type",
+    "options": {
+      "choices": [
+        {
+          "color": "cyanLight2",
+          "id": "selFKehghupRUXDe6",
+          "name": "All"
+        },
+        {
+          "color": "greenLight2",
+          "id": "selqyQUgKWXuBArYs",
+          "name": "All No Setback"
+        },
+        {
+          "color": "grayLight1",
+          "id": "selg65ZvT3tVkoGTb",
+          "name": "Empty: All 13"
+        },
+        {
+          "color": "greenDark1",
+          "id": "selLGYaDsQBUJOg30",
+          "name": "Empty House"
+        },
+        {
+          "color": "yellowDark1",
+          "id": "selQGNv4L0Z8vco2S",
+          "name": "Guests"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selHDelAjMn7pyFY8",
+          "name": "Just DC"
+        },
+        {
+          "color": "yellowLight2",
+          "id": "selNOR0VT38BbKtRo",
+          "name": "Enabled, No Heat Needed"
+        },
+        {
+          "color": "pinkDark1",
+          "id": "sel1ZQwZ1gQk02ENv",
+          "name": "System Off"
+        },
+        {
+          "color": "blueLight2",
+          "id": "selWQlIJJ0CWjvkC0",
+          "name": "Testing"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Long Note",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Thermostat Settings (can delete after automations)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "All thermostat changes",
+    "options": {
+      "fieldIdInLinkedTable": "fld8PJbwi8eSxnSOb",
+      "isValid": true,
+      "recordLinkFieldId": "fldQpUP8gl0SwzNzh",
+      "referencedFieldIds": [],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "rollup"
+  },
+  {
+    "name": "Heat KwH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Therm KWH (Auto Total)",
+    "options": {
+      "formula": "ROUND(\n  (IF({fldfvT0aWO5WxjLkl}=BLANK(),0,{fldfvT0aWO5WxjLkl})\n  + IF({fldWpDlClO2GrQmPz}=BLANK(),0,{fldWpDlClO2GrQmPz})\n  + IF({flduZQBo2N3HUAjW9}=BLANK(),0,{flduZQBo2N3HUAjW9})\n  + IF({fld4R3QMOV4zzncSR}=BLANK(),0,{fld4R3QMOV4zzncSR})\n  + IF({fld6asXZJBjjY58Yn}=BLANK(),0,{fld6asXZJBjjY58Yn})\n  + IF({fldIJHOfgnQXuA4Te}=BLANK(),0,{fldIJHOfgnQXuA4Te})\n  + IF({fldYKz2KqTQRxgC6G}=BLANK(),0,{fldYKz2KqTQRxgC6G})\n  + IF({fldRIh7SEiBnMBVlZ}=BLANK(),0,{fldRIh7SEiBnMBVlZ})\n  + IF({fldnl4bT3garv223n}=BLANK(),0,{fldnl4bT3garv223n})\n  + IF({fldm7pazEnzkppRso}=BLANK(),0,{fldm7pazEnzkppRso})\n  + IF({fldVrm7Fnu5z9nbqV}=BLANK(),0,{fldVrm7Fnu5z9nbqV})\n  + IF({fld5GBnVcmDVzv9Bn}=BLANK(),0,{fld5GBnVcmDVzv9Bn})),\n  3\n)\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldfvT0aWO5WxjLkl",
+        "fldWpDlClO2GrQmPz",
+        "flduZQBo2N3HUAjW9",
+        "fld4R3QMOV4zzncSR",
+        "fld6asXZJBjjY58Yn",
+        "fldIJHOfgnQXuA4Te",
+        "fldYKz2KqTQRxgC6G",
+        "fldRIh7SEiBnMBVlZ",
+        "fldnl4bT3garv223n",
+        "fldm7pazEnzkppRso",
+        "fldVrm7Fnu5z9nbqV",
+        "fld5GBnVcmDVzv9Bn"
+      ],
+      "result": {
+        "options": {
+          "precision": 1
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Total Heat KWH (Calc)",
+    "options": {
+      "formula": "{fldbbACZGmI9HANHc}+{fldmeC1XsuIUnP1ji}+{fld42czoDiBXSies4}+{fldPHEJefedtUyj9j}+{fldGtIXGyUJ1oJwQy}+{fldyjx0H59lcDaUj9}+{fldtTVCqcoC4yH9Tp}+{fldq3ltr5zuffBjZc}+{fldhEQ9VZeMwRQxek}+{fldQeTjjYe5zrvxsz}+{fldemXXDcYrcWnixC}+{fldHrIzbEDCBCzA2O}",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldbbACZGmI9HANHc",
+        "fldmeC1XsuIUnP1ji",
+        "fld42czoDiBXSies4",
+        "fldPHEJefedtUyj9j",
+        "fldGtIXGyUJ1oJwQy",
+        "fldyjx0H59lcDaUj9",
+        "fldtTVCqcoC4yH9Tp",
+        "fldq3ltr5zuffBjZc",
+        "fldhEQ9VZeMwRQxek",
+        "fldQeTjjYe5zrvxsz",
+        "fldemXXDcYrcWnixC",
+        "fldHrIzbEDCBCzA2O"
+      ],
+      "result": {
+        "options": {
+          "precision": 1
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Run Data Validation (post manual entry)",
+    "options": {
+      "color": "greenBright",
+      "icon": "check"
+    },
+    "type": "checkbox"
+  },
+  {
+    "name": "Den KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Entryway KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Bath KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Hall KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Room KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Kitchen KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Laundry KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "LR KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "MANC KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Master KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Stairs KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Up Bath KWH",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Heat Settings/Graph",
+    "options": {
+      "isReversed": false
+    },
+    "type": "multipleAttachments"
+  },
+  {
+    "name": "AI Analysis Notes for Thermostat Changes",
+    "options": {
+      "formula": "IF(\n  {fld7hYHqXP1ttXKmZ},\n  \"Thermostat events recorded | Format: DateTime,Zone,PrevTemp,NewTemp\",\n  \"No thermostat changes recorded | See {Therm SP Timeline (Derived)} for authoritative setpoints\"\n)\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld7hYHqXP1ttXKmZ"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Created",
+    "options": {
+      "result": {
+        "options": {
+          "dateFormat": {
+            "format": "l",
+            "name": "local"
+          },
+          "timeFormat": {
+            "format": "h:mma",
+            "name": "12hour"
+          },
+          "timeZone": "client"
+        },
+        "type": "dateTime"
+      }
+    },
+    "type": "createdTime"
+  },
+  {
+    "name": "Local WX Desc",
+    "options": {
+      "formula": "SWITCH(\n  {fldVYcS78SuFBjMbZ},\n  0, \"Clear sky\",\n  1, \"Mainly clear\",\n  2, \"Partly cloudy\",\n  3, \"Overcast\",\n  45, \"Fog\",\n  48, \"Depositing rime fog\",\n  51, \"Light drizzle\",\n  53, \"Moderate drizzle\",\n  55, \"Dense drizzle\",\n  56, \"Light freezing drizzle\",\n  57, \"Dense freezing drizzle\",\n  61, \"Slight rain\",\n  63, \"Moderate rain\",\n  65, \"Heavy rain\",\n  66, \"Light freezing rain\",\n  67, \"Heavy freezing rain\",\n  71, \"Slight snow fall\",\n  73, \"Moderate snow fall\",\n  75, \"Heavy snow fall\",\n  77, \"Snow grains\",\n  80, \"Slight rain showers\",\n  81, \"Moderate rain showers\",\n  82, \"Violent rain showers\",\n  85, \"Slight snow showers\",\n  86, \"Heavy snow showers\",\n  95, \"Thunderstorm\",\n  96, \"Thunderstorm with slight hail\",\n  99, \"Thunderstorm with heavy hail\",\n  \"Unknown weather code: \" & {fldVYcS78SuFBjMbZ}\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldVYcS78SuFBjMbZ"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Update Thermostats",
+    "options": {
+      "color": "greenBright",
+      "icon": "check"
+    },
+    "type": "checkbox"
+  },
+  {
+    "name": "datetime",
+    "options": {
+      "dateFormat": {
+        "format": "YYYY-MM-DD",
+        "name": "iso"
+      }
+    },
+    "type": "date"
+  },
+  {
+    "name": "p(KwH)",
+    "options": {
+      "formula": "(3 * {fldAf8lb1m1zZCDBA} + 3 * {fldTk0xo5NI0Mxqm0} + 2 * {fld6POFCrFo7490rd} + 2 * {fldJFQleoypin8Mxv} + 1 * {fldxNOcUlzFLUjY3z} + 2 * {fldsztE3N9GPpoQsP} + 2 * {fldWnSsP0sqC55cRS}) / 14\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldAf8lb1m1zZCDBA",
+        "fldTk0xo5NI0Mxqm0",
+        "fld6POFCrFo7490rd",
+        "fldJFQleoypin8Mxv",
+        "fldxNOcUlzFLUjY3z",
+        "fldsztE3N9GPpoQsP",
+        "fldWnSsP0sqC55cRS"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Initial p(KwH)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "p(KwH) Corrected",
+    "options": {
+      "formula": "IF(MONTH({fldgvHDOHtbExQlPY}) = 1, {fldPlsPD6qWxPqmjh} + 0.32,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 2, {fldPlsPD6qWxPqmjh} + 0.47,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 3, {fldPlsPD6qWxPqmjh} + 2.40,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 4, {fldPlsPD6qWxPqmjh} + 2.24,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 5, {fldPlsPD6qWxPqmjh} + 4.53,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 6, {fldPlsPD6qWxPqmjh} + 4.15,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 7, {fldPlsPD6qWxPqmjh} + 5.58,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 8, {fldPlsPD6qWxPqmjh} + 3.92,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 9, {fldPlsPD6qWxPqmjh} + 2.38,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 10, {fldPlsPD6qWxPqmjh} + 2.41,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 11, {fldPlsPD6qWxPqmjh} + 1.11,\nIF(MONTH({fldgvHDOHtbExQlPY}) = 12, {fldPlsPD6qWxPqmjh} - 1.01,\n{fldPlsPD6qWxPqmjh}))))))))))))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldgvHDOHtbExQlPY",
+        "fldPlsPD6qWxPqmjh"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Heat Prediction",
+    "options": {
+      "formula": "IF({fldhxA0p2od7aQTph} >= 15,\n   8,\nIF({fldhxA0p2od7aQTph} >= 10,\n   10 + (15 - {fldhxA0p2od7aQTph}) * 0.5,\nIF({fldhxA0p2od7aQTph} >= 5,\n   15 + (10 - {fldhxA0p2od7aQTph}) * 2.5,\nIF({fldhxA0p2od7aQTph} >= 0,\n   25 + (5 - {fldhxA0p2od7aQTph}) * 6,\nIF({fldhxA0p2od7aQTph} >= -5,\n   45 + ABS({fldhxA0p2od7aQTph}) * 7,\nIF({fldhxA0p2od7aQTph} >= -10,\n   75 + ABS({fldhxA0p2od7aQTph} + 5) * 8,\n   100 + ABS({fldhxA0p2od7aQTph} + 10) * 9))))))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldhxA0p2od7aQTph"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Heat Prediction (by type)",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja} = 'Empty House',\n  0.85 * (IF({fldhxA0p2od7aQTph} >= 15,\n     8,\n  IF({fldhxA0p2od7aQTph} >= 10,\n     12 + (15 - {fldhxA0p2od7aQTph}) * 0.8,\n  IF({fldhxA0p2od7aQTph} >= 5,\n     20 + (10 - {fldhxA0p2od7aQTph}) * 2.5,\n  IF({fldhxA0p2od7aQTph} >= 0,\n     30 + (5 - {fldhxA0p2od7aQTph}) * 5,\n  IF({fldhxA0p2od7aQTph} >= -5,\n     50 + ABS({fldhxA0p2od7aQTph}) * 6,\n  IF({fldhxA0p2od7aQTph} >= -10,\n     80 + ABS({fldhxA0p2od7aQTph} + 5) * 7,\n     100 + ABS({fldhxA0p2od7aQTph} + 10) * 8))))))),\nIF({fldvtWgWmrMCpvrja} = 'Empty: All 13',\n  1.3 * (IF({fldhxA0p2od7aQTph} >= 15,\n     8,\n  IF({fldhxA0p2od7aQTph} >= 10,\n     12 + (15 - {fldhxA0p2od7aQTph}) * 0.8,\n  IF({fldhxA0p2od7aQTph} >= 5,\n     20 + (10 - {fldhxA0p2od7aQTph}) * 2.5,\n  IF({fldhxA0p2od7aQTph} >= 0,\n     30 + (5 - {fldhxA0p2od7aQTph}) * 5,\n  IF({fldhxA0p2od7aQTph} >= -5,\n     50 + ABS({fldhxA0p2od7aQTph}) * 6,\n  IF({fldhxA0p2od7aQTph} >= -10,\n     80 + ABS({fldhxA0p2od7aQTph} + 5) * 7,\n     100 + ABS({fldhxA0p2od7aQTph} + 10) * 8))))))),\nIF({fldvtWgWmrMCpvrja} = 'Just DC',\n  1.0 * (IF({fldhxA0p2od7aQTph} >= 15,\n     8,\n  IF({fldhxA0p2od7aQTph} >= 10,\n     12 + (15 - {fldhxA0p2od7aQTph}) * 0.8,\n  IF({fldhxA0p2od7aQTph} >= 5,\n     20 + (10 - {fldhxA0p2od7aQTph}) * 2.5,\n  IF({fldhxA0p2od7aQTph} >= 0,\n     30 + (5 - {fldhxA0p2od7aQTph}) * 5,\n  IF({fldhxA0p2od7aQTph} >= -5,\n     50 + ABS({fldhxA0p2od7aQTph}) * 6,\n  IF({fldhxA0p2od7aQTph} >= -10,\n     80 + ABS({fldhxA0p2od7aQTph} + 5) * 7,\n     100 + ABS({fldhxA0p2od7aQTph} + 10) * 8))))))),\nIF({fldvtWgWmrMCpvrja} = 'All',\n  1.4 * (IF({fldhxA0p2od7aQTph} >= 15,\n     8,\n  IF({fldhxA0p2od7aQTph} >= 10,\n     12 + (15 - {fldhxA0p2od7aQTph}) * 0.8,\n  IF({fldhxA0p2od7aQTph} >= 5,\n     20 + (10 - {fldhxA0p2od7aQTph}) * 2.5,\n  IF({fldhxA0p2od7aQTph} >= 0,\n     30 + (5 - {fldhxA0p2od7aQTph}) * 5,\n  IF({fldhxA0p2od7aQTph} >= -5,\n     50 + ABS({fldhxA0p2od7aQTph}) * 6,\n  IF({fldhxA0p2od7aQTph} >= -10,\n     80 + ABS({fldhxA0p2od7aQTph} + 5) * 7,\n     100 + ABS({fldhxA0p2od7aQTph} + 10) * 8)))))))))))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja",
+        "fldhxA0p2od7aQTph"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "temp",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "tempmax",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "tempmin",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "feelslikemax",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "feelslike",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Feels min (F)",
+    "options": {
+      "formula": "{fldTk0xo5NI0Mxqm0}*(9/5)+32",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldTk0xo5NI0Mxqm0"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Cover?",
+    "options": {
+      "formula": "IF(OR({fld1AHicfOA3JMxk1}=\"Cover Yes\", {fldYDm4cW1ERdG9Cy}=\"Cover Yes\"),\"Yes\",\"No\"\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld1AHicfOA3JMxk1",
+        "fldYDm4cW1ERdG9Cy"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "feelslikemin",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "dew",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "humidity",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "precip",
+    "options": {
+      "precision": 3
+    },
+    "type": "number"
+  },
+  {
+    "name": "precipprob",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "precipcover",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "preciptype",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "snow",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "snowdepth",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "windgust",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "windspeed",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "winddir",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "sealevelpressure",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "cloudcover",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "visibility",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "solarradiation",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "solarenergy",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "uvindex",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "severerisk",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "sunrise",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "sunset",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "moonphase",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "conditions",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "description",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "icon",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "stations",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Usage note",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "seldk0w7YxIgJ6dlI",
+          "name": "We came late"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selFKehghupRUXDe6",
+          "name": "All of us"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selHDelAjMn7pyFY8",
+          "name": "Just Me"
+        },
+        {
+          "color": "yellowLight2",
+          "id": "sel8uX9VltHBMH9g6",
+          "name": "Empty House"
+        },
+        {
+          "color": "orangeLight2",
+          "id": "selUUjHRC5XASC8an",
+          "name": "Manc in morning"
+        },
+        {
+          "color": "redLight2",
+          "id": "selVDf2vG1HOSn0kZ",
+          "name": "Manc on"
+        },
+        {
+          "color": "pinkLight2",
+          "id": "sel32vDmaihkoyEDO",
+          "name": "Manc on 2.2"
+        },
+        {
+          "color": "purpleLight2",
+          "id": "seleX3p5BVWXjszPd",
+          "name": "Empty house? No master kitchen 22.8 g 3.9"
+        },
+        {
+          "color": "grayLight2",
+          "id": "selbjjT4CRQkMM9tz",
+          "name": "Manc on barely"
+        },
+        {
+          "color": "blueLight1",
+          "id": "selCl08ZfPMd2H8oR",
+          "name": "Manc out in morning"
+        },
+        {
+          "color": "cyanLight1",
+          "id": "seleN9DkOfjMHEYvl",
+          "name": "Just me; only master used"
+        },
+        {
+          "color": "tealLight1",
+          "id": "selKGE0cyYrEJRWaK",
+          "name": "Empty house"
+        },
+        {
+          "color": "greenLight1",
+          "id": "selvdMHijGEzX3dui",
+          "name": "Empty house; not only kitchen at 13"
+        },
+        {
+          "color": "yellowLight1",
+          "id": "selzFd5dOoyYdqKxN",
+          "name": "They came late"
+        },
+        {
+          "color": "orangeLight1",
+          "id": "selTXTpdX1dP5M0AW",
+          "name": "Just me? No Master but den on"
+        },
+        {
+          "color": "redLight1",
+          "id": "selIGprEGG41X0mCZ",
+          "name": "No master but den on."
+        },
+        {
+          "color": "pinkLight1",
+          "id": "seljd7zH6KrRd0J9l",
+          "name": "Master on late"
+        },
+        {
+          "color": "purpleLight1",
+          "id": "selILBYPXzw8lfqIA",
+          "name": "No manc"
+        },
+        {
+          "color": "grayLight1",
+          "id": "selg65ZvT3tVkoGTb",
+          "name": "empty house; not just kitchen at 13"
+        },
+        {
+          "color": "blueBright",
+          "id": "selTW5UoisOwo2s4C",
+          "name": "Manc room on in morning"
+        },
+        {
+          "color": "cyanBright",
+          "id": "selAo6qVi8MonjDa8",
+          "name": "Probably just me"
+        },
+        {
+          "color": "tealBright",
+          "id": "selDrzeExtT9iMmn9",
+          "name": "All came late"
+        },
+        {
+          "color": "greenBright",
+          "id": "sel1zeslsLeDYCl2a",
+          "name": "All of us ; den was on"
+        },
+        {
+          "color": "yellowBright",
+          "id": "sel3DjhgwtKSt8LTs",
+          "name": "Schools closed"
+        },
+        {
+          "color": "orangeBright",
+          "id": "selqwZ9iK31eEc8FO",
+          "name": "Manc on all day"
+        },
+        {
+          "color": "redBright",
+          "id": "selBl6DYbjyPIc1h1",
+          "name": "All came"
+        },
+        {
+          "color": "pinkBright",
+          "id": "selhlfAJDOpRuAzsN",
+          "name": "Just me after the morning"
+        },
+        {
+          "color": "purpleBright",
+          "id": "selszNF72PRs1u7Oz",
+          "name": "Only me in afternoon? No heating in afternoon"
+        },
+        {
+          "color": "grayBright",
+          "id": "selI9vY0eY0ZXYWIi",
+          "name": "The came in afternoon"
+        },
+        {
+          "color": "blueDark1",
+          "id": "selyNwhJWhlhTSOhR",
+          "name": "We came late?"
+        },
+        {
+          "color": "cyanDark1",
+          "id": "selU7TlsbkK73yXZB",
+          "name": "Just me?"
+        },
+        {
+          "color": "tealDark1",
+          "id": "selWEZ66DPexlnYVs",
+          "name": "Master only in morning"
+        },
+        {
+          "color": "greenDark1",
+          "id": "selLGYaDsQBUJOg30",
+          "name": "Empty house; only kitchen at 13"
+        },
+        {
+          "color": "yellowDark1",
+          "id": "selQGNv4L0Z8vco2S",
+          "name": "All of us; dj family guest room"
+        },
+        {
+          "color": "orangeDark1",
+          "id": "selN7jXb0cvW43mqP",
+          "name": "Empty; downstairs bathroon open"
+        },
+        {
+          "color": "greenLight2",
+          "id": "selfJjmqhB7sOo8LE",
+          "name": "Turned off the heat in afternoon only turned on master at night"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Up Main",
+    "options": {
+      "formula": "{fldmeC1XsuIUnP1ji}+{fld42czoDiBXSies4}+{fldGtIXGyUJ1oJwQy}+{fldPHEJefedtUyj9j}",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldmeC1XsuIUnP1ji",
+        "fld42czoDiBXSies4",
+        "fldGtIXGyUJ1oJwQy",
+        "fldPHEJefedtUyj9j"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Month",
+    "options": {
+      "formula": "MONTH({fldo1r4zMsuYl8e7D})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldo1r4zMsuYl8e7D"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Year",
+    "options": {
+      "formula": "YEAR({fldo1r4zMsuYl8e7D})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldo1r4zMsuYl8e7D"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Winter 2022 Check 1",
+    "options": {
+      "formula": "IF(AND({fldYFjrbwOY9YhvRT}>9, {fldw6cKBli3nnLZGF}=2022),\"Cover Yes\",\"No Cover\"\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldYFjrbwOY9YhvRT",
+        "fldw6cKBli3nnLZGF"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Winter 2022 Check 2",
+    "options": {
+      "formula": "IF(AND({fldYFjrbwOY9YhvRT}<4, {fldw6cKBli3nnLZGF}=2023),\"Cover Yes\",\"No Cover\"\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldYFjrbwOY9YhvRT",
+        "fldw6cKBli3nnLZGF"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "13C Turn",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "selxBuoIg9pXSR6rX",
+          "name": "Yes"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selmQ9WJM7tC5SSWh",
+          "name": "No"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Month-Year",
+    "options": {
+      "formula": "CONCATENATE({fldYFjrbwOY9YhvRT},\"-\",{fldw6cKBli3nnLZGF})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldYFjrbwOY9YhvRT",
+        "fldw6cKBli3nnLZGF"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Link to Pwr Roll Up",
+    "options": {
+      "inverseLinkFieldId": "fldo5haURPjdaOBud",
+      "isReversed": false,
+      "linkedTableId": "tblt2bICA8GJPd8Jj",
+      "prefersSingleRecordLink": false
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Just DC Count",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja}=\"Just DC\",1,0)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "All Count",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja}=\"All\",1,0\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Guest Count",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja}=\"Guests\",1,0\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Last Update",
+    "options": {
+      "isValid": true,
+      "referencedFieldIds": [],
+      "result": {
+        "options": {
+          "dateFormat": {
+            "format": "l",
+            "name": "local"
+          },
+          "timeFormat": {
+            "format": "h:mma",
+            "name": "12hour"
+          },
+          "timeZone": "client"
+        },
+        "type": "dateTime"
+      }
+    },
+    "type": "lastModifiedTime"
+  },
+  {
+    "name": "Notes to Add",
+    "options": {
+      "fieldIdInLinkedTable": "fldRukftPxj8VfqiF",
+      "isValid": true,
+      "recordLinkFieldId": "fld68Et9VAOULvZkL",
+      "result": {
+        "type": "multilineText"
+      }
+    },
+    "type": "multipleLookupValues"
+  },
+  {
+    "name": "Update note",
+    "options": {
+      "fieldIdInLinkedTable": "fldRukftPxj8VfqiF",
+      "isValid": true,
+      "recordLinkFieldId": "fld68Et9VAOULvZkL",
+      "result": {
+        "type": "multilineText"
+      }
+    },
+    "type": "multipleLookupValues"
+  },
+  {
+    "name": "Dew Point Readings",
+    "options": {
+      "isReversed": false
+    },
+    "type": "multipleAttachments"
+  },
+  {
+    "name": "Snow (inches)",
+    "options": {
+      "formula": "{fldgLUmJbFglZOGro} * .393701",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldgLUmJbFglZOGro"
+      ],
+      "result": {
+        "options": {
+          "precision": 4
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Loc",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "P(kwh) for Notifications",
+    "options": {
+      "formula": "LEFT(CONCATENATE({fldhxA0p2od7aQTph}),5)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldhxA0p2od7aQTph"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "No Use Count",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja}=\"No Usage\",1,0)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Feels F for notifications",
+    "options": {
+      "formula": "LEFT(CONCATENATE({fldNBVbS1k6Qr1MZU}),4)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldNBVbS1k6Qr1MZU"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Predict Difference",
+    "options": {
+      "formula": "{fldhxA0p2od7aQTph}-{fldPlsPD6qWxPqmjh}",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldhxA0p2od7aQTph",
+        "fldPlsPD6qWxPqmjh"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Usage Type Text",
+    "options": {
+      "formula": "CONCATENATE({fldvtWgWmrMCpvrja})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Is Fire?",
+    "options": {
+      "formula": "SEARCH(\"FIRE\",UPPER({fldlx1d89Dh58Jh9m}))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldlx1d89Dh58Jh9m"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Winter",
+    "options": {
+      "formula": "IF(\n  MONTH({fldgvHDOHtbExQlPY}) >= 8,\n  YEAR({fldgvHDOHtbExQlPY}) & \"/\" & (YEAR({fldgvHDOHtbExQlPY}) + 1),\n  (YEAR({fldgvHDOHtbExQlPY}) - 1) & \"/\" & YEAR({fldgvHDOHtbExQlPY})\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldgvHDOHtbExQlPY"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Temp Max (F)",
+    "options": {
+      "formula": "ROUND({fldxNOcUlzFLUjY3z}*(9/5)+32, 2)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldxNOcUlzFLUjY3z"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Temp Min (F)",
+    "options": {
+      "formula": "ROUND({fldAf8lb1m1zZCDBA} * (9/5) + 32, 2)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldAf8lb1m1zZCDBA"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Test Counter",
+    "options": {
+      "formula": "IF({fldvtWgWmrMCpvrja}=\"Testing\",1,0\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "p(KwH) (new)",
+    "options": {
+      "formula": "IF(\n  OR(\n    {fld6POFCrFo7490rd} = \"\",\n    {fldJFQleoypin8Mxv} = \"\",\n    {fldBvvYXK3K8BIcER} = \"\",\n    {fldqhonEjJKHOqIei} = \"\",\n    {fldAEQhwwyS5ehvht} = \"\",\n    {fldYFjrbwOY9YhvRT} = \"\",\n    {fldvtWgWmrMCpvrja} = \"\"\n  ),\n  \"Insufficient data\",\n  MAX(\n    0,\n    30 +\n    (-1.5 * {fld6POFCrFo7490rd}) +\n    (-0.5 * {fldJFQleoypin8Mxv}) +\n    (0.2 * {fldBvvYXK3K8BIcER}) +\n    (0.1 * {fldqhonEjJKHOqIei}) +\n    (0.05 * {fldAEQhwwyS5ehvht}) +\n    IF(OR({fldYFjrbwOY9YhvRT} < 4, {fldYFjrbwOY9YhvRT} > 10), 10, 0) +\n    SWITCH({fldvtWgWmrMCpvrja},\n      'All', 15,\n      'Just Me', 5,\n      'Empty: Only Kitchen', -5,\n      'Empty: All 13', -10,\n      0\n    )\n  )\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld6POFCrFo7490rd",
+        "fldJFQleoypin8Mxv",
+        "fldBvvYXK3K8BIcER",
+        "fldqhonEjJKHOqIei",
+        "fldAEQhwwyS5ehvht",
+        "fldYFjrbwOY9YhvRT",
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "New Heat Prediction",
+    "options": {
+      "formula": "IF(\n    {fldAf8lb1m1zZCDBA} >= 0,\n    ABS({fldAf8lb1m1zZCDBA}) * 7.0 *\n    IF({fldh4Xw91DnKaLYiX} <= 0, 1.4, \n       IF({fldh4Xw91DnKaLYiX} >= 150, 0.6, \n          1.4 - ({fldh4Xw91DnKaLYiX} / 150 * 0.8))) *\n    IF({fldqhonEjJKHOqIei} <= 50, 1,\n       IF({fldqhonEjJKHOqIei} >= 80, 1.4,\n          1 + (({fldqhonEjJKHOqIei} - 50) * 0.013))) *\n    ({fldhRDREO6qP8lWLg} / 10),\n    \n    IF({fldAf8lb1m1zZCDBA} >= -5,\n        ABS({fldAf8lb1m1zZCDBA}) * 4.3 *\n        IF({fldh4Xw91DnKaLYiX} <= 0, 1.3, \n           IF({fldh4Xw91DnKaLYiX} >= 150, 0.7, \n              1.3 - ({fldh4Xw91DnKaLYiX} / 150 * 0.6))) *\n        IF({fldqhonEjJKHOqIei} <= 50, 1,\n           IF({fldqhonEjJKHOqIei} >= 80, 1.35,\n              1 + (({fldqhonEjJKHOqIei} - 50) * 0.01))) *\n        ({fldhRDREO6qP8lWLg} / 10),\n        \n        ABS({fldAf8lb1m1zZCDBA}) * 3.7 *\n        IF({fldh4Xw91DnKaLYiX} <= 0, 1.3, \n           IF({fldh4Xw91DnKaLYiX} >= 150, 0.7, \n              1.3 - ({fldh4Xw91DnKaLYiX} / 150 * 0.6))) *\n        IF({fldqhonEjJKHOqIei} <= 50, 1,\n           IF({fldqhonEjJKHOqIei} >= 80, 1.35,\n              1 + (({fldqhonEjJKHOqIei} - 50) * 0.01))) *\n        ({fldhRDREO6qP8lWLg} / 10)\n    )\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldAf8lb1m1zZCDBA",
+        "fldh4Xw91DnKaLYiX",
+        "fldqhonEjJKHOqIei",
+        "fldhRDREO6qP8lWLg"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "WeatherFactor",
+    "options": {
+      "formula": "IF(\n    FIND(\"snow\", {fldLSDSRNojwLjpvS}) > 0,\n    11.0,\n    IF(\n        FIND(\"rain\", {fldLSDSRNojwLjpvS}) > 0,\n        14.5,\n        IF(\n            FIND(\"clear-day\", {fldLSDSRNojwLjpvS}) > 0,\n            10.5,\n            IF(\n                FIND(\"cloudy\", {fldLSDSRNojwLjpvS}) > 0,\n                14,\n                11\n            )\n        )\n    )\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldLSDSRNojwLjpvS"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "New Heat Predictor Accuracy Check",
+    "options": {
+      "formula": "(1 - ABS({fld1cPhDMlhjUFXgF} - {fldoychnyOzp9RxiJ}) / {fld1cPhDMlhjUFXgF}) * 100",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld1cPhDMlhjUFXgF",
+        "fldoychnyOzp9RxiJ"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "New Heat Predictor Accuracy Check copy",
+    "options": {
+      "formula": "IF(\n    {fldAf8lb1m1zZCDBA} >= 0,\n    ABS({fldAf8lb1m1zZCDBA}) * 8.0 *\n    IF({fldh4Xw91DnKaLYiX} <= 0, 1.4, \n       IF({fldh4Xw91DnKaLYiX} >= 150, 0.6, \n          1.4 - ({fldh4Xw91DnKaLYiX} / 150 * 0.8))) *\n    IF({fldqhonEjJKHOqIei} <= 50, 1,\n       IF({fldqhonEjJKHOqIei} >= 80, 1.45,\n          1 + (({fldqhonEjJKHOqIei} - 50) * 0.015))) *\n    ({fldhRDREO6qP8lWLg} / 10) *\n    IF({fldyHUWH0OZvRk377} > 0, 0.9, 1),\n    \n    IF({fldAf8lb1m1zZCDBA} >= -5,\n        ABS({fldAf8lb1m1zZCDBA}) * 4.5 *\n        IF({fldh4Xw91DnKaLYiX} <= 0, 1.3, \n           IF({fldh4Xw91DnKaLYiX} >= 150, 0.7, \n              1.3 - ({fldh4Xw91DnKaLYiX} / 150 * 0.6))) *\n        IF({fldqhonEjJKHOqIei} <= 50, 1,\n           IF({fldqhonEjJKHOqIei} >= 80, 1.35,\n              1 + (({fldqhonEjJKHOqIei} - 50) * 0.01))) *\n        ({fldhRDREO6qP8lWLg} / 10) *\n        IF({fldyHUWH0OZvRk377} > 0, 0.85, 1),\n        \n        ABS({fldAf8lb1m1zZCDBA}) * 3.6 *\n        IF({fldh4Xw91DnKaLYiX} <= 0, 1.3, \n           IF({fldh4Xw91DnKaLYiX} >= 150, 0.7, \n              1.3 - ({fldh4Xw91DnKaLYiX} / 150 * 0.6))) *\n        IF({fldqhonEjJKHOqIei} <= 50, 1,\n           IF({fldqhonEjJKHOqIei} >= 80, 1.35,\n              1 + (({fldqhonEjJKHOqIei} - 50) * 0.01))) *\n        ({fldhRDREO6qP8lWLg} / 10) *\n        IF({fldyHUWH0OZvRk377} > 0, 0.8, 1)\n    )\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldAf8lb1m1zZCDBA",
+        "fldh4Xw91DnKaLYiX",
+        "fldqhonEjJKHOqIei",
+        "fldhRDREO6qP8lWLg",
+        "fldyHUWH0OZvRk377"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Snow (Round)",
+    "options": {
+      "formula": "ROUND({fldIPc2K4wZqmZNQz})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldIPc2K4wZqmZNQz"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Min F (round)",
+    "options": {
+      "formula": "ROUND({fldknPQ067nWEoKdI})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldknPQ067nWEoKdI"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "2022 2024 Jan Feb",
+    "options": {
+      "formula": "IF(AND(OR({fldw6cKBli3nnLZGF} = 2022, {fldw6cKBli3nnLZGF} = 2024), OR({fldYFjrbwOY9YhvRT} = 1, {fldYFjrbwOY9YhvRT} = 2)), \"Yes\", \"No\")",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldw6cKBli3nnLZGF",
+        "fldYFjrbwOY9YhvRT"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "UVAlert",
+    "options": {
+      "formula": "IF({fld1qGsAaWQlUbvg8} >= 11, \"UV Extreme (11+)\",\nIF({fld1qGsAaWQlUbvg8} >= 8, \"UV Very High (8-10)\",\nIF({fld1qGsAaWQlUbvg8} >= 6, \"UV High (6-7)\",\nIF({fld1qGsAaWQlUbvg8} >= 3, \"UV Moderate (3-5)\",\n\"UV Low (0-2)\"))))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld1qGsAaWQlUbvg8"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Vegetable Garden Journal",
+    "options": {
+      "inverseLinkFieldId": "fldFeccWf0lqKKQrc",
+      "isReversed": false,
+      "linkedTableId": "tbl5fdBE03GbWnTJr",
+      "prefersSingleRecordLink": true
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Precip (inches)",
+    "options": {
+      "formula": "{fldxoKUSgAKNqT44t} / 2.54",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldxoKUSgAKNqT44t"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Days to Today",
+    "options": {
+      "formula": "DATETIME_DIFF({fldo1r4zMsuYl8e7D},NOW(),'days')",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldo1r4zMsuYl8e7D"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "om_temp",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_temp_f",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_humidity",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_pressure",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_wind_speed",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_wind_speed_mph",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "temp_difference",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Number",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_elevation",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_precipitation",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_data_timestamp",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      },
+      "timeFormat": {
+        "format": "h:mma",
+        "name": "12hour"
+      },
+      "timeZone": "client"
+    },
+    "type": "dateTime"
+  },
+  {
+    "name": "om_weather_code",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "Local v Albany Temp Diff (F)",
+    "options": {
+      "formula": "ROUND((({fldk5IwD9IlAbKTV5} - {fld6POFCrFo7490rd}) * 9/5), 1)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldk5IwD9IlAbKTV5",
+        "fld6POFCrFo7490rd"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "temp (F)",
+    "options": {
+      "formula": "({fld6POFCrFo7490rd} * 9/5) + 32",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld6POFCrFo7490rd"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Local Precip (IN)",
+    "options": {
+      "formula": "IF({fldQgC3AAEhKA5sYd},\n  ROUND({fldQgC3AAEhKA5sYd} / 2.54, 2)\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldQgC3AAEhKA5sYd"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Local Temp (F)",
+    "options": {
+      "formula": "CONCATENATE({fldhQH8rQe4Je76RJ})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldhQH8rQe4Je76RJ"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Moderate or Heavier Precip?",
+    "options": {
+      "formula": "IF(\n  REGEX_MATCH(LOWER({fldyqYIMfl3qPqJeU}), \"moderate|heavy|violent|freezing\"),\n  \"Yes\",\n  \"No\"\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldyqYIMfl3qPqJeU"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Time Stamp (EST)",
+    "options": {
+      "formula": "SET_TIMEZONE({fld0L7zQGouVuMoTf}, 'America/New_York')",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fld0L7zQGouVuMoTf"
+      ],
+      "result": {
+        "options": {
+          "dateFormat": {
+            "format": "M/D/YYYY",
+            "name": "us"
+          }
+        },
+        "type": "date"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Usage Type Empty",
+    "options": {
+      "formula": "IF(\n  FIND(\"Empty\", {fldvtWgWmrMCpvrja} & \"\"),\n  1,\n  0\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldvtWgWmrMCpvrja"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Snow Present?",
+    "options": {
+      "formula": "IF(\n  OR(\n    LOWER(TRIM({fldLSDSRNojwLjpvS})) = \"snow\",\n    AND(\n      {fldyqYIMfl3qPqJeU} & \"\" != \"\",\n      SEARCH(\"snow\", LOWER({fldyqYIMfl3qPqJeU})) != 0\n    )\n  ),\n  \"Yes\",\n  \"No\"\n)\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldLSDSRNojwLjpvS",
+        "fldyqYIMfl3qPqJeU"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "WX Rollups",
+    "options": {
+      "inverseLinkFieldId": "fldiHJYaCgdml7Dih",
+      "isReversed": false,
+      "linkedTableId": "tblSjEk6Kl37LgeL8",
+      "prefersSingleRecordLink": false
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Winter Period?",
+    "options": {
+      "formula": "IF(\n  OR({fldYFjrbwOY9YhvRT}=11, {fldYFjrbwOY9YhvRT}=12, {fldYFjrbwOY9YhvRT}=1, {fldYFjrbwOY9YhvRT}=2, {fldYFjrbwOY9YhvRT}=3),\n    \"Yes\",\n    \"No\"\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldYFjrbwOY9YhvRT"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Power/Heat Rollup",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "Stairs %",
+    "options": {
+      "formula": "{fldGtIXGyUJ1oJwQy}/{fldBUdV0YfNnFB228}",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldGtIXGyUJ1oJwQy",
+        "fldBUdV0YfNnFB228"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "percent"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "om_snowfall",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_snowfall_6h",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_snow_depth",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "om_snowfall (inches)",
+    "options": {
+      "formula": "IF({fldqTryhP4OiwVspn}, ROUND({fldqTryhP4OiwVspn} / 2.54, 2))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldqTryhP4OiwVspn"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "om_snow_6h (inches)",
+    "options": {
+      "formula": "IF(\n  {fldXWSIkNPtNdsebc},\n  ROUND({fldXWSIkNPtNdsebc} * 0.393701, 2),\n  BLANK()\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldXWSIkNPtNdsebc"
+      ],
+      "result": {
+        "options": {
+          "precision": 2
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Stairs KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "LR KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Kitchen KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Up Bath KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "MANC KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Master KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Den KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Hall KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Laundry KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Bath KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Entryway KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Guest Room KWH (Auto)",
+    "options": {
+      "precision": 2
+    },
+    "type": "number"
+  },
+  {
+    "name": "Thermostat Settings (Auto)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Data Source",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "Validation Notes (manual)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "HDD (18C)",
+    "options": {
+      "formula": "MAX(0, 18 - {fldk5IwD9IlAbKTV5})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldk5IwD9IlAbKTV5"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "HA Rollup Present?",
+    "options": {
+      "formula": "IF(OR(COUNTA({fldhaWwvReblZ9dtk}) > 0, COUNTA({fldb9DbagI88mQBnd}) > 0), 1, 0)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldhaWwvReblZ9dtk",
+        "fldb9DbagI88mQBnd"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Therm DQ Status",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "selKW0KHfUGkCyRJz",
+          "name": "PASS"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selNk5JNxFbPtxC5O",
+          "name": "FAIL"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selxEBT7g9iZHSt5g",
+          "name": "WARN"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Therm DQ Score",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Therm DQ Missing Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm DQ Negative Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm DQ Required Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm DQ Notes",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Validation Status",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "selLDIAdpaZclmdD1",
+          "name": "PASS"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selvvNqkBd4L2aKYW",
+          "name": "WARN"
+        },
+        {
+          "color": "tealLight2",
+          "id": "sel6Buc61J42bXXZd",
+          "name": "FAIL"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Therm Validation Score",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "Therm Validation Compared Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Validation Missing Manual Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Validation Missing Auto Zones",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Validation Max Abs Diff",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Therm Validation Mean Abs Diff",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Therm Validation Notes",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Validation Needs Review",
+    "options": {
+      "color": "greenBright",
+      "icon": "check"
+    },
+    "type": "checkbox"
+  },
+  {
+    "name": "Therm Validation Last Run",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      },
+      "timeFormat": {
+        "format": "h:mma",
+        "name": "12hour"
+      },
+      "timeZone": "client"
+    },
+    "type": "dateTime"
+  },
+  {
+    "name": "Therm kWh per HDD (Auto Total)",
+    "options": {
+      "formula": "IF(\n  {fldJa1AiMBqtEZwjz} > 0,\n  {fldK10fWikv0xATjW} / {fldJa1AiMBqtEZwjz}\n)\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldJa1AiMBqtEZwjz",
+        "fldK10fWikv0xATjW"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Therm KWH (Auto Total Zones Present)",
+    "options": {
+      "formula": "IF({fldfvT0aWO5WxjLkl}=BLANK(),0,1)\n+ IF({fldWpDlClO2GrQmPz}=BLANK(),0,1)\n+ IF({flduZQBo2N3HUAjW9}=BLANK(),0,1)\n+ IF({fld4R3QMOV4zzncSR}=BLANK(),0,1)\n+ IF({fld6asXZJBjjY58Yn}=BLANK(),0,1)\n+ IF({fldIJHOfgnQXuA4Te}=BLANK(),0,1)\n+ IF({fldYKz2KqTQRxgC6G}=BLANK(),0,1)\n+ IF({fldRIh7SEiBnMBVlZ}=BLANK(),0,1)\n+ IF({fldnl4bT3garv223n}=BLANK(),0,1)\n+ IF({fldm7pazEnzkppRso}=BLANK(),0,1)\n+ IF({fldVrm7Fnu5z9nbqV}=BLANK(),0,1)\n+ IF({fld5GBnVcmDVzv9Bn}=BLANK(),0,1)\n",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldfvT0aWO5WxjLkl",
+        "fldWpDlClO2GrQmPz",
+        "flduZQBo2N3HUAjW9",
+        "fld4R3QMOV4zzncSR",
+        "fld6asXZJBjjY58Yn",
+        "fldIJHOfgnQXuA4Te",
+        "fldYKz2KqTQRxgC6G",
+        "fldRIh7SEiBnMBVlZ",
+        "fldnl4bT3garv223n",
+        "fldm7pazEnzkppRso",
+        "fldVrm7Fnu5z9nbqV",
+        "fld5GBnVcmDVzv9Bn"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Thermostat Events",
+    "options": {
+      "inverseLinkFieldId": "fld7rDMXfnb6eqOGc",
+      "isReversed": false,
+      "linkedTableId": "tblvd80WJDrMLCUfm",
+      "prefersSingleRecordLink": false
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Estimated Heating Cost (auto)",
+    "options": {
+      "formula": "{fldK10fWikv0xATjW}*.1704",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldK10fWikv0xATjW"
+      ],
+      "result": {
+        "options": {
+          "precision": 2,
+          "symbol": "$"
+        },
+        "type": "currency"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Therm SP Start (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP End (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Source (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Changes Count (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Stale Zones (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Summary (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Last Run",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      },
+      "timeFormat": {
+        "format": "h:mma",
+        "name": "12hour"
+      },
+      "timeZone": "client"
+    },
+    "type": "dateTime"
+  },
+  {
+    "name": "Trigger Therm Stat Changes",
+    "options": {
+      "color": "greenBright",
+      "icon": "check"
+    },
+    "type": "checkbox"
+  },
+  {
+    "name": "WX Changes",
+    "options": {
+      "inverseLinkFieldId": "fldahAn2HLrNPiqGM",
+      "isReversed": false,
+      "linkedTableId": "tblAo4we5nWRisXAC",
+      "prefersSingleRecordLink": false
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Temp Therm Calc",
+    "options": {
+      "color": "greenBright",
+      "icon": "check"
+    },
+    "type": "checkbox"
+  },
+  {
+    "name": "Therm SP Timeline (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Setpoint-Hours (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Degree-Hours (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm SP Degree-Hours by Setpoint (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Efficiency Index (Derived)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Therm Zone Daily",
+    "options": {
+      "inverseLinkFieldId": "fld2dfjZVmFLzYhit",
+      "isReversed": false,
+      "linkedTableId": "tbld4NkVaJZMXUDcZ",
+      "prefersSingleRecordLink": false
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "HA Indoor Humidity Stats (Auto)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "HA Indoor Temperature Stats (Auto)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "HA Indoor Env Summary (Auto)",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "HA Indoor Env Last Run (Auto)",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      },
+      "timeFormat": {
+        "format": "h:mma",
+        "name": "12hour"
+      },
+      "timeZone": "client"
+    },
+    "type": "dateTime"
+  },
+  {
+    "name": "HA Indoor Env Human Summary (Auto)",
+    "options": null,
+    "type": "multilineText"
+  }
+]

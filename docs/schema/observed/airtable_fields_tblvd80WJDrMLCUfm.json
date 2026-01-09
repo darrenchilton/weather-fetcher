@@ -1,0 +1,238 @@
+[
+  {
+    "name": "Name",
+    "options": {
+      "formula": "CONCATENATE({fldkngJ6sIOGRGLPa},\"-\",{fldpBrlgNJWAmYpuB},\"-\",{fld096CesD3Hehor1})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldkngJ6sIOGRGLPa",
+        "fldpBrlgNJWAmYpuB",
+        "fld096CesD3Hehor1"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "WX",
+    "options": {
+      "inverseLinkFieldId": "fldQpUP8gl0SwzNzh",
+      "isReversed": false,
+      "linkedTableId": "tblhUuES8IxQyoBqe",
+      "prefersSingleRecordLink": true
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "Previous Setpoint",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "New Setpoint",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  },
+  {
+    "name": "Thermostat",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "Timestamp",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      },
+      "timeFormat": {
+        "format": "h:mma",
+        "name": "12hour"
+      },
+      "timeZone": "client"
+    },
+    "type": "dateTime"
+  },
+  {
+    "name": "Date",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      }
+    },
+    "type": "date"
+  },
+  {
+    "name": "Change Type",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "Daily Summary",
+    "options": null,
+    "type": "singleLineText"
+  },
+  {
+    "name": "Created",
+    "options": {
+      "result": {
+        "options": {
+          "dateFormat": {
+            "format": "l",
+            "name": "local"
+          },
+          "timeFormat": {
+            "format": "h:mma",
+            "name": "12hour"
+          },
+          "timeZone": "client"
+        },
+        "type": "dateTime"
+      }
+    },
+    "type": "createdTime"
+  },
+  {
+    "name": "Notes",
+    "options": null,
+    "type": "multilineText"
+  },
+  {
+    "name": "Event ID",
+    "options": null,
+    "type": "autoNumber"
+  },
+  {
+    "name": "Date (YYYY-DD-MM)",
+    "options": {
+      "formula": "DATETIME_FORMAT({fldQrzH5DjI4HSABc}, 'YYYY-MM-DD')",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldQrzH5DjI4HSABc"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "For WX Rolup",
+    "options": {
+      "formula": "CONCATENATE(\n  DATETIME_FORMAT(SET_TIMEZONE({fldV2PcqCmw4DvC5H}, 'America/New_York'), 'YYYY-MM-DD HH:mm:ss'),\n  \",\",\n  {fldkngJ6sIOGRGLPa},\n  \",\",\n  {fldpBrlgNJWAmYpuB},\n  \",\",\n  {fld096CesD3Hehor1}\n)",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldV2PcqCmw4DvC5H",
+        "fldkngJ6sIOGRGLPa",
+        "fldpBrlgNJWAmYpuB",
+        "fld096CesD3Hehor1"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Created time",
+    "options": {
+      "result": {
+        "options": {
+          "dateFormat": {
+            "format": "l",
+            "name": "local"
+          },
+          "timeFormat": {
+            "format": "h:mma",
+            "name": "12hour"
+          },
+          "timeZone": "client"
+        },
+        "type": "dateTime"
+      }
+    },
+    "type": "createdTime"
+  },
+  {
+    "name": "MM-YYYY",
+    "options": {
+      "formula": "CONCATENATE(MONTH({fldV2PcqCmw4DvC5H}),\"-\",YEAR({fldV2PcqCmw4DvC5H}))",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldV2PcqCmw4DvC5H"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Usage Type",
+    "options": {
+      "fieldIdInLinkedTable": "fldvtWgWmrMCpvrja",
+      "isValid": true,
+      "recordLinkFieldId": "fld7rDMXfnb6eqOGc",
+      "result": {
+        "options": {
+          "choices": [
+            {
+              "color": "cyanLight2",
+              "id": "selFKehghupRUXDe6",
+              "name": "All"
+            },
+            {
+              "color": "greenLight2",
+              "id": "selqyQUgKWXuBArYs",
+              "name": "All No Setback"
+            },
+            {
+              "color": "grayLight1",
+              "id": "selg65ZvT3tVkoGTb",
+              "name": "Empty: All 13"
+            },
+            {
+              "color": "greenDark1",
+              "id": "selLGYaDsQBUJOg30",
+              "name": "Empty House"
+            },
+            {
+              "color": "yellowDark1",
+              "id": "selQGNv4L0Z8vco2S",
+              "name": "Guests"
+            },
+            {
+              "color": "tealLight2",
+              "id": "selHDelAjMn7pyFY8",
+              "name": "Just DC"
+            },
+            {
+              "color": "yellowLight2",
+              "id": "selNOR0VT38BbKtRo",
+              "name": "Enabled, No Heat Needed"
+            },
+            {
+              "color": "pinkDark1",
+              "id": "sel1ZQwZ1gQk02ENv",
+              "name": "System Off"
+            },
+            {
+              "color": "blueLight2",
+              "id": "selWQlIJJ0CWjvkC0",
+              "name": "Testing"
+            }
+          ]
+        },
+        "type": "singleSelect"
+      }
+    },
+    "type": "multipleLookupValues"
+  }
+]
