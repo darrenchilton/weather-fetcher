@@ -468,6 +468,24 @@ This project is documented as a set of explicit, version-controlled artifacts:
   `tools/`  
   Read-only tooling used for schema drift detection and integrity verification.
 
-There is no single monolithic “runbook”; the system is intentionally decomposed so that
-contracts, automation behavior, and execution logic can evolve independently.
+## Documentation
 
+This project is documented as a set of explicit, version-controlled artifacts:
+
+- **Schema contracts**  
+  `docs/schema/`  
+  Authoritative definitions of data structures, invariants, and daily semantics.
+
+- **Airtable automations**  
+  `docs/automations/`  
+  Complete documentation of Airtable automations, including triggers, scripts, schedules, and execution DAGs.
+
+- **Execution scripts**  
+  `scripts/`  
+  Weather ingestion and Home Assistant enrichment scripts that create and update WX records.
+
+- **Analysis & validation tooling**  
+  `tools/`  
+  Read-only tooling used for schema drift detection and integrity verification.
+
+- **Operational runbooks (host/HA ops, recovery): architecture_and_runbook.md (until migrated)
