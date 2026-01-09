@@ -26,7 +26,7 @@ flowchart TD
   %% TABLES
   %% =========================
   WX[(WX)]
-  TE[(Thermostat Events)]
+  TE[(Therm Events)]
   ZD[(Therm Zone Daily)]
 
   %% WX: tblhUuES8IxQyoBqe (1 record per local day)
@@ -61,6 +61,16 @@ flowchart TD
 
   WX --> A4
   A4 --> ZD
+
+  %% =========================
+  %% STYLES
+  %% =========================
+  classDef table fill:#eef,stroke:#447,stroke-width:1px;
+  classDef automation fill:#efe,stroke:#474,stroke-width:1px;
+
+  class WX,TE,ZD table;
+  class A1,A2,A3,A4,L1 automation;
+
 ```
 
 Execution order and dependencies
