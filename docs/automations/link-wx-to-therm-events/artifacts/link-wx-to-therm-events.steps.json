@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "id": "step_01_update_record",
+      "type": "update_record",
+      "table": "Thermostat Events",
+      "record_id_source": "trigger.record_id",
+      "writes": [
+        {
+          "field": "WX",
+          "value_source": "derived date selector (Date YYYY-DD-MM)"
+        }
+      ]
+    }
+  ]
+}

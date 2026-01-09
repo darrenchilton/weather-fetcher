@@ -1,0 +1,29 @@
+{
+  "automation_name": "Data Quality (3:45am)",
+  "status": "on",
+  "trigger": {
+    "type": "scheduled_time",
+    "timezone_display": "EST",
+    "schedule": {
+      "freq": "daily",
+      "time": "03:45"
+    },
+    "starting_ui": "2025-12-19",
+    "conditions": "always"
+  },
+  "data_date_rule": "targetDate = cfg.targetDate || yesterday(local runtime date)",
+  "inputs_optional": {
+    "targetDate": "YYYY-MM-DD"
+  },
+  "policy": {
+    "dq_mode": "active-only",
+    "warn_if_no_events": true,
+    "excluded_zones": [
+      "Guest Hall"
+    ],
+    "penalties": {
+      "missing_per_zone": 25,
+      "negative_per_zone": 60
+    }
+  }
+}

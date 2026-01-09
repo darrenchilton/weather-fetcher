@@ -1,0 +1,20 @@
+{
+  "automation_name": "Daily explode script (4:15 am)",
+  "canonical_name": "Therm Zone Daily — Daily Upsert",
+  "status": "on",
+  "trigger": {
+    "type": "scheduled_time",
+    "timezone_display": "EST",
+    "schedule": {
+      "freq": "daily",
+      "time": "04:15"
+    },
+    "start_date": "2025-12-16",
+    "start_date_semantics": "automation eligibility only; script always targets prior local day",
+    "data_date_rule": "targetDate = override || yesterday(TIME_ZONE)""conditions": "always"
+  },
+  "inputs_optional": {
+    "targetDate": "YYYY-MM-DD",
+    "TIME_ZONE": "IANA timezone string (default America/New_York)"
+  }
+}

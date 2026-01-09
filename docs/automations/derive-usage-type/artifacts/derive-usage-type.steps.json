@@ -1,0 +1,34 @@
+{
+  "steps": [
+    {
+      "id": "step_01_run_script",
+      "type": "run_script",
+      "name": "Run a script",
+      "script_location": "airtable_automation_code_editor",
+      "reads": [
+        {
+          "table": "WX",
+          "fields": [
+            "Date (configured identity field)",
+            "Therm SP Timeline (Derived)",
+            "Usage Type",
+            "* KWH (Auto) (all fields with suffix)"
+          ]
+        }
+      ],
+      "writes": [
+        {
+          "table": "WX",
+          "mode": "update_single_record",
+          "selection_rule": "find record where dateFieldToYYYYMMDD(WX[Date]) == targetDate",
+          "fields_written": [
+            "Usage Type"
+          ]
+        }
+      ],
+      "outputs": [
+        "console logs only"
+      ]
+    }
+  ]
+}

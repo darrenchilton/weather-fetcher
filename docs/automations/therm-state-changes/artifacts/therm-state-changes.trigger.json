@@ -1,0 +1,22 @@
+{
+  "automation_name": "Therm State Changes (3:15am)",
+  "status": "on",
+  "trigger": {
+    "type": "scheduled_time",
+    "timezone_display": "EST",
+    "schedule": {
+      "freq": "daily",
+      "time": "03:15"
+    },
+    "starting_ui": "2026-01-02",
+    "conditions": "always"
+  },
+  "data_date_rule": "targetDate = cfg.targetDate || yesterday(TIME_ZONE)",
+  "inputs_optional": {
+    "targetDate": "YYYY-MM-DD",
+    "TIME_ZONE": "IANA timezone string (default America/New_York)",
+    "STALE_HOURS": "number (default 36)",
+    "MIDNIGHT_GRACE_MINUTES": "number (default 10)",
+    "EXCLUDED_ZONES": "array of zone names (default [])"
+  }
+}

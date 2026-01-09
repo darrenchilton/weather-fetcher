@@ -1,0 +1,9 @@
+{
+  "automation_name": "Link WX to Therm Events",
+  "status": "on",
+  "trigger": {
+    "type": "record_created",
+    "table": "Thermostat Events",
+    "conditions": "always"
+  }
+}

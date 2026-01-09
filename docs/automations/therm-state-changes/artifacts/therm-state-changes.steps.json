@@ -1,0 +1,54 @@
+{
+  "steps": [
+    {
+      "id": "step_01_run_script",
+      "type": "run_script",
+      "name": "Run a script",
+      "script_location": "airtable_automation_code_editor",
+      "reads": [
+        {
+          "table": "WX",
+          "fields": [
+            "datetime",
+            "om_temp",
+            "{zone} KWH (Auto) (field may or may not exist; accessed safely)"
+          ]
+        },
+        {
+          "table": "Thermostat Events",
+          "fields": [
+            "Timestamp",
+            "New Setpoint",
+            "Thermostat",
+            "Name"
+          ]
+        }
+      ],
+      "writes": [
+        {
+          "table": "WX",
+          "mode": "update_single_record",
+          "selection_rule": "find record where YYYY-MM-DD(datetime in TIME_ZONE) == targetDate",
+          "fields_written": [
+            "Therm SP Start (Derived)",
+            "Therm SP End (Derived)",
+            "Therm SP Timeline (Derived)",
+            "Therm SP Setpoint-Hours (Derived)",
+            "Therm SP Degree-Hours (Derived)",
+            "Therm SP Degree-Hours by Setpoint (Derived)",
+            "Therm Efficiency Index (Derived)",
+            "Therm SP Source (Derived)",
+            "Therm SP Changes Count (Derived)",
+            "Therm SP Stale Zones (Derived)",
+            "Therm SP Summary (Derived)",
+            "Therm SP Last Run"
+          ]
+        }
+      ],
+      "outputs": [
+        "console logs",
+        "WX.{Therm SP Summary (Derived)}"
+      ]
+    }
+  ]
+}

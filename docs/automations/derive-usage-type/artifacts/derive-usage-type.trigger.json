@@ -1,0 +1,18 @@
+{
+  "automation_name": "Derive Usage Type (3:30am)",
+  "status": "on",
+  "trigger": {
+    "type": "scheduled_time",
+    "timezone_display": "EST",
+    "schedule": {
+      "freq": "daily",
+      "time": "03:30"
+    },
+    "starting_ui": "2026-01-04",
+    "conditions": "always"
+  },
+  "data_date_rule": "targetDate = cfg.targetDate || yesterday(America/New_York)",
+  "inputs_optional": {
+    "targetDate": "YYYY-MM-DD"
+  }
+}

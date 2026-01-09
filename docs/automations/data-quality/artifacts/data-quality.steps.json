@@ -1,0 +1,50 @@
+{
+  "steps": [
+    {
+      "id": "step_01_run_script",
+      "type": "run_script",
+      "name": "Run a script",
+      "script_location": "airtable_automation_code_editor",
+      "reads": [
+        {
+          "table": "WX",
+          "fields": [
+            "Date (configured identity field)",
+            "{Zone} KWH (Auto) (via explicit mapping)",
+            "Therm DQ Status",
+            "Therm DQ Score",
+            "Therm DQ Required Zones",
+            "Therm DQ Missing Zones",
+            "Therm DQ Negative Zones",
+            "Therm DQ Notes"
+          ]
+        },
+        {
+          "table": "Thermostat Events",
+          "fields": [
+            "Date",
+            "Thermostat"
+          ]
+        }
+      ],
+      "writes": [
+        {
+          "table": "WX",
+          "mode": "update_single_record",
+          "selection_rule": "find record where cellToDateString(WX[Date]) == targetDate",
+          "fields_written": [
+            "Therm DQ Status",
+            "Therm DQ Score",
+            "Therm DQ Required Zones",
+            "Therm DQ Missing Zones",
+            "Therm DQ Negative Zones",
+            "Therm DQ Notes"
+          ]
+        }
+      ],
+      "outputs": [
+        "output.set(targetDate, eventsCount, activeZones, requiredZones, status, score)"
+      ]
+    }
+  ]
+}
