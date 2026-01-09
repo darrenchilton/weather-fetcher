@@ -1,0 +1,20 @@
+{
+  "automation_name": "Set Point to Off",
+  "steps": [
+    {
+      "type": "send_slack_message",
+      "slack_account": "default",
+      "channel": "#windham-wx-report",
+      "message": [
+        "====================",
+        "Set point set to off",
+        "{{Name}}",
+        "",
+        "https://airtable.com/appoTbBi5JDuMvJ9D/tblvd80WJDrMLCUfm/viwaEoWajmlsZZvUh/view",
+        "",
+        "https://airtable.com/appoTbBi5JDuMvJ9D/wflJRjfi7rLjEEFvH/wacaAOJsqlaXUUEet/automation"
+      ],
+      "notes": "Emits a notification when a thermostat setpoint is explicitly set to 0.0 (system off)."
+    }
+  ]
+}

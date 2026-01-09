@@ -1,0 +1,9 @@
+{
+  "automation_name": "DQ Warn",
+  "trigger": {
+    "type": "when_record_enters_view",
+    "table": "WX",
+    "view": "DQ Score (WARN)",
+    "notes": "Fires when a WX record newly matches the DQ Score (WARN) view, including when the record is updated or when view filters change."
+  }
+}

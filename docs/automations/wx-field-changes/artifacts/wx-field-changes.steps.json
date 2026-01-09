@@ -1,0 +1,30 @@
+{
+  "automation_name": "WX Field Changes",
+  "steps": [
+    {
+      "order": 1,
+      "type": "create_record",
+      "table": "WX Changes",
+      "fields": {
+        "datetime": "{{WX.datetime}}",
+        "temp": "{{WX.temp}}",
+        "precipprob": "{{WX.precipprob}}",
+        "snow": "{{WX.snow}}",
+        "om_temp": "{{WX.om_temp}}",
+        "om_snowfall": "{{WX.om_snowfall}}",
+        "description": "{{WX.Local WX Desc}}"
+      },
+      "notes": "Creates a snapshot record capturing the updated WX weather fields."
+    },
+    {
+      "order": 2,
+      "type": "update_record",
+      "table": "WX Changes",
+      "record_id_source": "Airtable Record ID (from create step)",
+      "fields": {
+        "WX": "{{WX.datetime (formatted for link)}}"
+      },
+      "notes": "Links the WX Changes record back to the originating WX record."
+    }
+  ]
+}

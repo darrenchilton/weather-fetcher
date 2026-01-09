@@ -1,0 +1,16 @@
+{
+  "automation_name": "WX Field Changes",
+  "trigger": {
+    "type": "when_record_updated",
+    "table": "WX",
+    "view_restriction": null,
+    "watched_fields": [
+      "temp",
+      "precipprob",
+      "snow",
+      "om_temp",
+      "om_snowfall"
+    ],
+    "notes": "Fires whenever any of the watched weather-related fields on a WX record are updated."
+  }
+}

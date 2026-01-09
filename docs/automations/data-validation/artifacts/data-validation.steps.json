@@ -1,0 +1,26 @@
+{
+  "automation_name": "Data Validation",
+  "steps": [
+    {
+      "type": "conditional_group",
+      "condition": {
+        "expression": "Run Data Validation (post manual entry) is checked/true",
+        "source": "triggering_record"
+      },
+      "actions": [
+        {
+          "type": "run_script",
+          "script_source": "code_editor",
+          "input_variables": [
+            {
+              "name": "wxRecordId",
+              "type": "airtable_record_id",
+              "value_from": "triggering_record.id"
+            }
+          ],
+          "script_file": "artifacts/data-validation.script.js"
+        }
+      ]
+    }
+  ]
+}

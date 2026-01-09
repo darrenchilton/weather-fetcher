@@ -1,0 +1,17 @@
+{
+  "automation_name": "DQ Warn",
+  "steps": [
+    {
+      "type": "send_slack_message",
+      "slack_account": "default",
+      "channel": "#thermostat-warning",
+      "message": [
+        "DQ Warning:",
+        "{{Therm DQ Notes}}",
+        "",
+        "https://airtable.com/appoTbBi5JDuMvJ9D/wfldSit4ZMaL9fXDL/wacacB2cshdIJosxa?editorMode=configuration|automation"
+      ],
+      "notes": "Sends a warning-level data quality notification with inline DQ notes and a deep link back to the Airtable base."
+    }
+  ]
+}

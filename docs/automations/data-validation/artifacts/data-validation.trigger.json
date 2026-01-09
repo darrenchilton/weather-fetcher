@@ -1,0 +1,12 @@
+{
+  "automation_name": "Data Validation",
+  "trigger": {
+    "type": "when_record_updated",
+    "table": "WX",
+    "view_restriction": null,
+    "watched_fields": [
+      "Run Data Validation (post manual entry)"
+    ],
+    "notes": "Fires when the single watched field is updated on any WX record. Intended as a post-manual-entry button/flag."
+  }
+}

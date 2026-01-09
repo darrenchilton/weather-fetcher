@@ -1,0 +1,9 @@
+{
+  "automation_name": "Set Point to Off",
+  "trigger": {
+    "type": "when_record_enters_view",
+    "table": "Thermostat Events",
+    "view": "Set Point off",
+    "notes": "Fires when a thermostat event record enters the 'Set Point off' view (New Setpoint = 0.0)."
+  }
+}
