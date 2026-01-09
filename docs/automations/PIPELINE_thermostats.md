@@ -19,7 +19,9 @@ Out of scope (documented elsewhere):
 
 ## DAG (Mermaid)
 
+```mermaid
 flowchart TD
+
   %% =========================
   %% TABLES
   %% =========================
@@ -44,26 +46,22 @@ flowchart TD
   %% FLOWS
   %% =========================
 
-  %% Event linkage
   TE --> L1 --> TE
 
-  %% Thermostat baseline derivation
   WX --> A1
   TE --> A1
   A1 --> WX
 
-  %% Usage type
   WX --> A2
   A2 --> WX
 
-  %% Data quality
   WX --> A3
   TE --> A3
   A3 --> WX
 
-  %% Zone daily explode
   WX --> A4
   A4 --> ZD
+```
 
 Execution order and dependencies
 Scheduled runs (local EST display):
