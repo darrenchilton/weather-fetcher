@@ -19,56 +19,52 @@ Out of scope (documented elsewhere):
 
 ## DAG (Mermaid)
 
-```mermaid
 flowchart TD
   %% =========================
-  %% TABLES (data nodes)
+  %% TABLES
   %% =========================
-  WX[(WX\n(tblhUuES8IxQyoBqe)\n1 record per local day)]
-  TE[(Thermostat Events\n(tblvd80WJDrMLCUfm)\nevent log input)]
-  ZD[(Therm Zone Daily\n(tbld4NkVaJZMXUDcZ)\nderived-only table)]
+  WX[(WX)]
+  TE[(Thermostat Events)]
+  ZD[(Therm Zone Daily)]
+
+  %% WX: tblhUuES8IxQyoBqe (1 record per local day)
+  %% TE: tblvd80WJDrMLCUfm (event log)
+  %% ZD: tbld4NkVaJZMXUDcZ (derived-only)
 
   %% =========================
-  %% AUTOMATIONS (process nodes)
+  %% AUTOMATIONS
   %% =========================
-  A1["Therm State Changes (3:15am)\nScheduled → Run script\nWrites Therm SP derived JSONs to WX"]
-  A2["Derive Usage Type (3:30am)\nScheduled → Run script\nWrites Usage Type to WX"]
-  A3["Data Quality (3:45am)\nScheduled → Run script\nWrites Therm DQ fields to WX"]
-  A4["Daily explode script (4:15am)\nScheduled → Run script\nUpserts Therm Zone Daily from WX"]
-  L1["Link WX to Therm Events\nOn Thermostat Events created → Update record\nWrites link Thermostat Events.WX"]
+  A1["Therm State Changes (3:15)"]
+  A2["Derive Usage Type (3:30)"]
+  A3["Data Quality (3:45)"]
+  A4["Daily Explode (4:15)"]
+  L1["Link WX to Therm Events"]
 
   %% =========================
   %% FLOWS
   %% =========================
 
-  %% Event linkage path
-  TE -->|record created| L1 -->|update Thermostat Events.WX link| TE
+  %% Event linkage
+  TE --> L1 --> TE
 
-  %% Daily thermostat baseline derivation
-  WX -->|reads: datetime, om_temp, zone KWH (Auto)| A1
-  TE -->|reads: Timestamp, New Setpoint, Thermostat/Name| A1
-  A1 -->|writes: Therm SP Timeline/Hours/DegreeHours/Eff/Source/Changes/Summary| WX
+  %% Thermostat baseline derivation
+  WX --> A1
+  TE --> A1
+  A1 --> WX
 
-  %% Usage type derivation
-  WX -->|reads: Therm SP Timeline (Derived), * KWH (Auto)| A2
-  A2 -->|writes: Usage Type| WX
+  %% Usage type
+  WX --> A2
+  A2 --> WX
 
-  %% Data quality derivation
-  WX -->|reads: Date, zone KWH (Auto)| A3
-  TE -->|reads: Date, Thermostat| A3
-  A3 -->|writes: Therm DQ Status/Score/Notes/etc.| WX
+  %% Data quality
+  WX --> A3
+  TE --> A3
+  A3 --> WX
 
-  %% Therm Zone Daily explode/upsert
-  WX -->|reads: Therm DQ Status, Usage Type,\nTherm SP Degree-Hours/Setpoint-Hours/Eff/Source/Changes,\nzone KWH (Auto)| A4
-  A4 -->|upsert 1 record per (Zone × Local Day)| ZD
+  %% Zone daily explode
+  WX --> A4
+  A4 --> ZD
 
-  %% =========================
-  %% NOTES (identity semantics)
-  %% =========================
-  classDef note fill:#f7f7f7,stroke:#999,color:#222;
-  N1["Identity note:\nWX is keyed by local day.\nSome automations match via WX.datetime,\nothers via WX.Date.\nThis is a documented alignment risk."]:::note
-
-  WX -.-> N1
 Execution order and dependencies
 Scheduled runs (local EST display):
 
