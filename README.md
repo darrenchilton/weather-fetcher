@@ -29,21 +29,32 @@ A comprehensive Python weather service that fetches data from multiple sources a
 
 ```
 weather-fetcher/
-├── .github/workflows/
-│   └── weather-fetcher.yml      # GitHub Actions automation
-├── .env.example                 # Environment template
-├── .gitignore                   # Git ignore patterns
-├── weather_fetcher.py           # Main VC script + OM integration methods
-├── openmeteo_fetcher.py         # Open-Meteo data fetcher
-├── update_openmeteo.py          # OM update script
-├── run_weather.sh               # VC shell script (legacy)
-├── run_openmeteo.sh             # OM shell script (legacy)
-├── requirements.txt             # Python dependencies
-├── homeassistant/               # Home Assistant WX enrichers (Phase 7)
-│   ├── scripts/
-│   │   └── thermostat_rollup_write_yesterday.py
-│   └── README.md
-└── README.md                    # This file
+├── README.md
+├── docs/
+│   ├── schema/              # Contractual schemas (authoritative)
+│   │   ├── DAILY_DATA_CONTRACT.md
+│   │   ├── AIRTABLE_WX_SCHEMA.md
+│   │   ├── WEATHER_INGESTION_SCHEMA.md
+│   │   ├── HA_RECORDER_SCHEMA.md
+│   │   ├── SCHEMA_INDEX.md
+│   │   ├── generated/       # Machine-generated schema snapshots
+│   │   └── observed/        # Airtable Metadata API captures
+│   │
+│   └── automations/         # Airtable automation system (operational)
+│       ├── PIPELINE_thermostats.md
+│       ├── AUTOMATION_therm-zone-daily.md
+│       ├── therm-state-changes/
+│       ├── derive-usage-type/
+│       ├── data-quality/
+│       └── link-wx-to-therm-events/
+│
+├── scripts/                 # Weather + HA producers (execution)
+│   └── (existing fetchers / HA writers)
+│
+├── tools/                   # Analysis & validation tooling
+│   └── schema-drift/        # (design next)
+│
+└── .gitignore
 ```
 
 ## Automation
@@ -152,6 +163,43 @@ A dedicated Airtable view (ALERT — HA Rollup Missing) filters for:
 
 An automation monitors this view and sends a Slack alert if HA ingestion did not occur.
 
+## Repository Structure
+
+This repository is organized around clear separation of concerns:
+
+### `/docs/schema/` — Contractual Schemas
+Authoritative definitions of data structures and invariants:
+- WX daily fact table
+- Weather ingestion contracts
+- Home Assistant recorder semantics
+
+These documents define **what the data must be**, independent of implementation.
+
+### `/docs/automations/` — Airtable Automation System
+Complete documentation of Airtable automations, including:
+- Triggers and schedules
+- Scripts (as-run)
+- Derived tables
+- Execution DAGs
+
+These documents define **how data is derived and validated**.
+
+### `/scripts/` — Data Producers
+Executable scripts that:
+- Create WX records (weather ingestion)
+- Enrich WX from Home Assistant
+
+Scripts never derive secondary tables.
+
+### `/tools/` — Analysis & Validation
+Read-only tooling used to:
+- Detect schema drift
+- Compare contracts vs observed state
+- Produce deterministic reports
+
+Tools never mutate Airtable state.
+
+
 ## Setup
 
 ### 1. GitHub Repository
@@ -177,7 +225,11 @@ AIRTABLE_BASE_ID=your_base_id
 
 **Visual Crossing Fields (existing):**
 
-* `datetime` (Date) - Primary date field for record matching
+*  `datetime` (Date) — **Canonical daily identity key**
+  - One record per local day (America/New_York)
+  - Used by all producers and automations for record selection
+  - Selected using day-level comparison semantics (DST-safe)
+
 * `temp`, `tempmax`, `tempmin` (Number, 1 decimal) - Temperature data in Celsius
 * `humidity`, `pressure`, `windspeed` (Number, 1 decimal) - Weather parameters
 * `precip` (Number, 2 decimal) - Precipitation data
@@ -365,7 +417,57 @@ Explicit approval
 
 Backfill re-validation if logic changes
 
-Full details, field contracts, and scripts are documented in:
+## Airtable Automation Pipeline — Thermostats
 
-➡ **architecture_and_runbook.md**
+Thermostat analytics and validation are implemented as a **deterministic Airtable automation pipeline** operating on existing WX records.
+
+### Tables
+- **WX** — daily fact table (1 record per local day)
+- **Thermostat Events** — append-only event log
+- **Therm Zone Daily** — derived-only projection (one row per date × zone)
+
+### Daily Schedule (EST)
+
+| Time  | Automation            | Purpose |
+|------:|-----------------------|---------|
+| 03:15 | Therm State Changes   | Build per-zone setpoint timelines and derived metrics |
+| 03:30 | Derive Usage Type     | Classify daily usage context |
+| 03:45 | Data Quality          | Validate HA kWh completeness |
+| 04:15 | Therm Zone Daily      | Explode per-zone daily rows |
+
+### Design Rules
+
+- WX records are **never created** by automations
+- All automations target **yesterday (America/New_York)**
+- All automations are **idempotent**
+- Thermostat Events is an event log and is expected to grow faster than WX
+
+📄 Full documentation, scripts, triggers, and DAG live in:
+`docs/automations/`
+
+A visual DAG of the thermostat automation pipeline is documented in:
+docs/automations/PIPELINE_thermostats.md
+
+## Documentation
+
+This project is documented as a set of explicit, version-controlled artifacts:
+
+- **Schema contracts**  
+  `docs/schema/`  
+  Authoritative definitions of data structures, invariants, and daily semantics.
+
+- **Airtable automations**  
+  `docs/automations/`  
+  Complete documentation of Airtable automations, including triggers, scripts, schedules, and execution DAGs.
+
+- **Execution scripts**  
+  `scripts/`  
+  Weather ingestion and Home Assistant enrichment scripts that create and update WX records.
+
+- **Analysis & validation tooling**  
+  `tools/`  
+  Read-only tooling used for schema drift detection and integrity verification.
+
+There is no single monolithic “runbook”; the system is intentionally decomposed so that
+contracts, automation behavior, and execution logic can evolve independently.
 
