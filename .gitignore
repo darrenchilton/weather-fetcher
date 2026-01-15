@@ -55,3 +55,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# thermostat rollup backups
+homeassistant/scripts/*.bak_*
