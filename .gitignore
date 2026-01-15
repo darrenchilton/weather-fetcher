@@ -58,3 +58,6 @@ Thumbs.db
 
 # thermostat rollup backups
 homeassistant/scripts/*.bak_*
+
+# local backup artifacts
+*.bak_*
