@@ -1,0 +1,280 @@
+[
+  {
+    "name": "Name",
+    "options": {
+      "formula": "CONCATENATE(DATESTR({fldFTKE3sMRd7jnYB}), \"-\", {fldenSxw36OIYHIlr})",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldFTKE3sMRd7jnYB",
+        "fldenSxw36OIYHIlr"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Date",
+    "options": {
+      "dateFormat": {
+        "format": "l",
+        "name": "local"
+      }
+    },
+    "type": "date"
+  },
+  {
+    "name": "Zone",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "seloFLW1IAl3Wcjto",
+          "name": "Den"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "sel26iAMAUSlLDrZR",
+          "name": "Entryway"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selYNljzsbjmjjlum",
+          "name": "Guest Bath"
+        },
+        {
+          "color": "greenLight2",
+          "id": "seltnNzRtspKSsDPP",
+          "name": "Guest Hall"
+        },
+        {
+          "color": "yellowLight2",
+          "id": "sel8YQUZivx4pYPAT",
+          "name": "Guest Room"
+        },
+        {
+          "color": "orangeLight2",
+          "id": "sel38sgwImHEsP3xt",
+          "name": "Kitchen"
+        },
+        {
+          "color": "redLight2",
+          "id": "seloSIaHeFHyTlmQH",
+          "name": "LR"
+        },
+        {
+          "color": "pinkLight2",
+          "id": "selYctxdpFr9XDZsu",
+          "name": "Laundry"
+        },
+        {
+          "color": "purpleLight2",
+          "id": "selVAFeZYXPyKczmQ",
+          "name": "MANC"
+        },
+        {
+          "color": "grayLight2",
+          "id": "sel30tYqn0yRL0LQ2",
+          "name": "Master"
+        },
+        {
+          "color": "blueLight1",
+          "id": "selvp10gu1rVcY0LJ",
+          "name": "Stairs"
+        },
+        {
+          "color": "cyanLight1",
+          "id": "selbkB1A8KgnfF100",
+          "name": "Up Bath"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Key (Date|Zone)",
+    "options": {
+      "formula": "DATETIME_FORMAT({fldFTKE3sMRd7jnYB}, 'YYYY-MM-DD') & '|' & {fldenSxw36OIYHIlr}",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldFTKE3sMRd7jnYB",
+        "fldenSxw36OIYHIlr"
+      ],
+      "result": {
+        "type": "singleLineText"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "WX Record",
+    "options": {
+      "inverseLinkFieldId": "fldbUTdudZXNQ1Yd0",
+      "isReversed": false,
+      "linkedTableId": "tblhUuES8IxQyoBqe",
+      "prefersSingleRecordLink": true
+    },
+    "type": "multipleRecordLinks"
+  },
+  {
+    "name": "kWh Auto",
+    "options": {
+      "precision": 3
+    },
+    "type": "number"
+  },
+  {
+    "name": "Degree Hours",
+    "options": {
+      "precision": 3
+    },
+    "type": "number"
+  },
+  {
+    "name": "Setpoint Hours",
+    "options": {
+      "precision": 3
+    },
+    "type": "number"
+  },
+  {
+    "name": "Efficiency Index",
+    "options": {
+      "precision": 6
+    },
+    "type": "number"
+  },
+  {
+    "name": "SP Source",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "selee8y7vQd8QqhEb",
+          "name": "Observed"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "seltoSVCOnWFfnmp7",
+          "name": "CarriedForward"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selmJEYCCiye6lRsm",
+          "name": "Stale"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "SP Changes Count",
+    "options": {
+      "precision": 0
+    },
+    "type": "number"
+  },
+  {
+    "name": "DQ Status",
+    "options": {
+      "choices": [
+        {
+          "color": "greenLight2",
+          "id": "sel3FOWQL00fMJ9h3",
+          "name": "PASS"
+        },
+        {
+          "color": "orangeBright",
+          "id": "seldAszLe5uV7P5Nb",
+          "name": "FAIL"
+        },
+        {
+          "color": "yellowLight2",
+          "id": "sely6relOkqwboGy1",
+          "name": "WARN"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Usage Type",
+    "options": {
+      "choices": [
+        {
+          "color": "blueLight2",
+          "id": "sel8jYVm55YjAYGcI",
+          "name": "All"
+        },
+        {
+          "color": "cyanLight2",
+          "id": "selcFTI9UBriIQ5C0",
+          "name": "All No Setback"
+        },
+        {
+          "color": "tealLight2",
+          "id": "selGvTP837m6Ie6Fg",
+          "name": "Empty: All 13"
+        },
+        {
+          "color": "greenLight2",
+          "id": "selh45J3Shxn0NMjJ",
+          "name": "Empty House"
+        },
+        {
+          "color": "yellowLight2",
+          "id": "selXL3EguR5jcvs8R",
+          "name": "Guests"
+        },
+        {
+          "color": "orangeLight2",
+          "id": "seliyhQl3Na2VY8se",
+          "name": "Just DC"
+        },
+        {
+          "color": "purpleLight2",
+          "id": "selK6JE9Gg2HxvJbW",
+          "name": "Enabled, No Heat Needed"
+        },
+        {
+          "color": "redLight2",
+          "id": "selGETL6sc6TiRdCg",
+          "name": "System Off"
+        },
+        {
+          "color": "pinkLight2",
+          "id": "selxXX97x05aVA6tI",
+          "name": "Testing"
+        }
+      ]
+    },
+    "type": "singleSelect"
+  },
+  {
+    "name": "Include in Trend?",
+    "options": {
+      "formula": "AND({fldAGsQAwFZM7kIBu}=\"PASS\", {fldpEScbEmXY3gpDW}>0, {fldCfypkWh7LYqwwd}!=\"Stale\")",
+      "isValid": true,
+      "referencedFieldIds": [
+        "fldAGsQAwFZM7kIBu",
+        "fldpEScbEmXY3gpDW",
+        "fldCfypkWh7LYqwwd"
+      ],
+      "result": {
+        "options": {
+          "precision": 0
+        },
+        "type": "number"
+      }
+    },
+    "type": "formula"
+  },
+  {
+    "name": "Rolling 7d EI",
+    "options": {
+      "precision": 1
+    },
+    "type": "number"
+  }
+]

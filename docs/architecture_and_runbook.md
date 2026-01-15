@@ -1745,3 +1745,15 @@ It is strictly an ingestion-completeness guard.
 ---
 
 **End of document**
+
+---
+
+## Thermostat kWh rollups (mutable truth)
+
+Daily thermostat kWh values are derived from Home Assistant recorder history and written into Airtable as mutable truth.
+
+- Recent history is recomputed nightly to repair late or corrected HA data
+- Drift is detected via a read-only checker and reconciled by controlled rewrites
+
+Operational details:
+- `docs/automations/RUNBOOK_thermostat_kwh_rollup.md`

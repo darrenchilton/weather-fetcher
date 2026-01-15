@@ -1,0 +1,38 @@
+{
+  "base_id": "appoTbBi5JDuMvJ9D",
+  "base_schema_file": "docs/schema/observed/airtable_base_schema_observed.json",
+  "extracted": [
+    {
+      "field_count": 194,
+      "fields_file_by_id": "docs/schema/observed/airtable_fields_tblhUuES8IxQyoBqe.json",
+      "fields_file_by_name": "docs/schema/observed/airtable_fields_wx.json",
+      "id": "tblhUuES8IxQyoBqe",
+      "name": "WX"
+    },
+    {
+      "field_count": 17,
+      "fields_file_by_id": "docs/schema/observed/airtable_fields_tblvd80WJDrMLCUfm.json",
+      "fields_file_by_name": "docs/schema/observed/airtable_fields_thermostat_events.json",
+      "id": "tblvd80WJDrMLCUfm",
+      "name": "Thermostat Events"
+    },
+    {
+      "field_count": 15,
+      "fields_file_by_id": "docs/schema/observed/airtable_fields_tbld4NkVaJZMXUDcZ.json",
+      "fields_file_by_name": "docs/schema/observed/airtable_fields_therm_zone_daily.json",
+      "id": "tbld4NkVaJZMXUDcZ",
+      "name": "Therm Zone Daily"
+    }
+  ],
+  "generated_utc": "2026-01-09T00:07:59.534481+00:00",
+  "missing_targets": [],
+  "tables_compact_file": "docs/schema/observed/airtable_tables_observed.json",
+  "targets": {
+    "table_ids": [
+      "tblhUuES8IxQyoBqe",
+      "tblvd80WJDrMLCUfm",
+      "tbld4NkVaJZMXUDcZ"
+    ],
+    "table_names": []
+  }
+}

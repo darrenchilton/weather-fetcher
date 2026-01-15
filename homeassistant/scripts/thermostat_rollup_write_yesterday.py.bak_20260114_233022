@@ -19,7 +19,7 @@ TBL_EVENTS = "tblvd80WJDrMLCUfm"   # Thermostat Events
 TBL_WX     = "tblhUuES8IxQyoBqe"   # WX
 
 LOCAL_TZ = ZoneInfo("America/New_York")
-HA_DB_PATH = os.getenv("HA_DB_PATH", "/config/home-assistant_v2.db")
+HA_DB_PATH = "/config/home-assistant_v2.db"
 
 ZONES_ORDER = [
     "Stairs", "LR", "Kitchen", "Up Bath", "MANC", "Master",
@@ -44,9 +44,8 @@ ZONE_DAILY_ENTITY = {
 ZONE_KWH_FIELD = {z: f"{z} KWH (Auto)" for z in ZONES_ORDER}
 TRACE_ID_LIMIT = 25
 
-def read_token_from_config_yaml(path=None):
-    path = path or os.getenv("HA_CONFIG_PATH", "/config/configuration.yaml")
 
+def read_token_from_config_yaml(path="/config/configuration.yaml"):
     try:
         with open(path, "r", encoding="utf-8") as f:
             text = f.read()
@@ -95,20 +94,6 @@ def iso_local_midnight_range_for_yesterday():
     start_local = datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0, tzinfo=LOCAL_TZ)
     end_local = start_local + timedelta(days=1)
     return target_date.isoformat(), start_local, end_local
-
-def iso_local_midnight_range_for_date(target_date_iso: str):
-    """
-    target_date_iso: 'YYYY-MM-DD' in LOCAL_TZ
-    Returns: (target_date_iso, start_local, end_local)
-    """
-    try:
-        d = datetime.strptime(target_date_iso, "%Y-%m-%d").date()
-    except Exception:
-        raise ValueError(f"Invalid --date-local '{target_date_iso}'. Expected YYYY-MM-DD.")
-
-    start_local = datetime(d.year, d.month, d.day, 0, 0, 0, tzinfo=LOCAL_TZ)
-    end_local = start_local + timedelta(days=1)
-    return d.isoformat(), start_local, end_local
 
 
 def dt_iso(dt: datetime) -> str:
@@ -326,118 +311,61 @@ def update_wx_record(token, wx_record_id, summary_text, kwh_by_zone, write_wx: b
     r = airtable_request("PATCH", url, airtable_headers(token), data=json.dumps(payload))
     return r.json()
 
-def iter_past_days_local(n_days: int):
-    now_local = datetime.now(LOCAL_TZ)
-    end_date = now_local.date() - timedelta(days=1)  # yesterday
-    for i in range(n_days):
-        d = end_date - timedelta(days=i)
-        yield d.isoformat()
 
-
-def main() -> int:
-    # Backward compatible: env var still works
+def main():
     write_wx = os.getenv("WRITE_WX", "0") == "1"
-
-    argv = sys.argv[1:]
-
-    # New: explicit CLI opt-in to write
-    if "--write" in argv:
-        write_wx = True
-
-    # New: rolling window recompute
-    days_back = None
-    if "--days-back" in argv:
-        i = argv.index("--days-back")
-        if i + 1 >= len(argv):
-            print("ERROR: --days-back requires an integer value")
-            return 2
-        try:
-            days_back = int(argv[i + 1])
-        except Exception:
-            print("ERROR: --days-back must be an integer")
-            return 2
-        if days_back <= 0 or days_back > 365:
-            print("ERROR: --days-back must be between 1 and 365")
-            return 2
-
-    # Existing: single-day override
-    date_local = None
-    if "--date-local" in argv:
-        i = argv.index("--date-local")
-        if i + 1 >= len(argv):
-            print("ERROR: --date-local requires a value like YYYY-MM-DD")
-            return 2
-        date_local = argv[i + 1].strip()
-
-    if days_back is not None and date_local:
-        print("ERROR: Use either --days-back or --date-local, not both.")
-        return 2
-
     token = get_airtable_token()
+    target_date_iso, start_local, end_local = iso_local_midnight_range_for_yesterday()
 
-    # Build the date list
-    if days_back is not None:
-        dates = list(iter_past_days_local(days_back))
-    else:
-        dates = [date_local] if date_local else [None]  # None = yesterday
+    print(f"target_date_local: {target_date_iso}")
+    print(f"mode: {'WRITE_WX=1 (will update WX)' if write_wx else 'dry-run (no WX writes)'}")
 
-    print(f"mode: {'WRITE (will update WX)' if write_wx else 'dry-run (no WX writes)'}")
-    if days_back is not None:
-        print(f"window: last {days_back} days ending yesterday (local)")
-    else:
-        print("window: single day")
+    events = fetch_events(token, start_local, end_local)
+    print(f"events_fetched: {len(events)}")
 
-    # Process each date
-    for d in dates:
-        if d:
-            target_date_iso, start_local, end_local = iso_local_midnight_range_for_date(d)
-        else:
-            target_date_iso, start_local, end_local = iso_local_midnight_range_for_yesterday()
+    try:
+        wx_record_id = find_wx_record_for_date(token, target_date_iso)
+    except Exception as e:
+        print(f"ERROR: WX lookup failed: {e}")
+        sys.exit(3)
 
-        print(f"\n=== day {target_date_iso} ===")
+    print(f"wx_record_id: {wx_record_id}")
 
-        events = fetch_events(token, start_local, end_local)
-        print(f"events_fetched: {len(events)}")
+    summary_text = build_summary(target_date_iso, events)
 
-        try:
-            wx_record_id = find_wx_record_for_date(token, target_date_iso)
-        except Exception as e:
-            print(f"ERROR: WX lookup failed for {target_date_iso}: {e}")
-            continue
+    kwh_by_zone = read_yesterday_daily_kwh_from_db(start_local, end_local)
+    missing = [z for z, v in kwh_by_zone.items() if v is None]
 
-        print(f"wx_record_id: {wx_record_id}")
+    print("kwh_yesterday_by_zone:")
+    for z in ZONES_ORDER:
+        print(f"- {z}: {kwh_by_zone.get(z)}")
 
-        summary_text = build_summary(target_date_iso, events)
+    if missing:
+        print(f"WARNING: missing kWh for zones: {', '.join(missing)}")
+        summary_text += (
+            "\n\nkWh note: One or more zones have no kWh for this date. "
+            "This is expected if energy meters were added after the target date, "
+            "or if recorder history is missing for the daily energy sensors."
+        )
 
-        kwh_by_zone = read_yesterday_daily_kwh_from_db(start_local, end_local)
-        missing = [z for z, v in kwh_by_zone.items() if v is None]
+    print("summary_preview_start")
+    print(summary_text)
+    print("summary_preview_end")
 
-        print("kwh_by_zone:")
-        for z in ZONES_ORDER:
-            print(f"- {z}: {kwh_by_zone.get(z)}")
+    _ = update_wx_record(token, wx_record_id, summary_text, kwh_by_zone, write_wx)
+    print("wx_update: OK" if write_wx else "wx_update: SKIPPED (dry run)")
 
-        if missing:
-            print(f"WARNING: missing kWh for zones: {', '.join(missing)}")
-            summary_text += (
-                "\n\nkWh note: One or more zones have no kWh for this date. "
-                "This is expected if energy meters were added after the target date, "
-                "or if recorder history is missing for the daily energy sensors."
-            )
-
-        _ = update_wx_record(token, wx_record_id, summary_text, kwh_by_zone, write_wx)
-        print("wx_update: OK" if write_wx else "wx_update: SKIPPED (dry run)")
-
-        run_summary = {
-            "rollup": "thermostat",
-            "date": target_date_iso,
-            "events_fetched": len(events),
-            "kwh_present": sum(1 for v in kwh_by_zone.values() if v is not None),
-            "kwh_missing": sum(1 for v in kwh_by_zone.values() if v is None),
-            "wx_record_id": wx_record_id,
-            "write_mode": bool(write_wx),
-        }
-        print("run_summary_json:")
-        print(json.dumps(run_summary, indent=2))
+    run_summary = {
+        "rollup": "thermostat",
+        "date": target_date_iso,
+        "events_fetched": len(events),
+        "kwh_present": sum(1 for v in kwh_by_zone.values() if v is not None),
+        "kwh_missing": sum(1 for v in kwh_by_zone.values() if v is None),
+        "wx_record_id": wx_record_id,
+        "write_mode": bool(write_wx),
+    }
+    print("run_summary_json:")
+    print(json.dumps(run_summary, indent=2))
 
     return 0
 

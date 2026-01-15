@@ -148,3 +148,10 @@ This is an intentional boundary between event-day identity and daily fact identi
 On DST transition days, verify targetDate in logs/notes for Usage Type and Data Quality.”
 
 “If needed, rerun with explicit targetDate input variable.”
+---
+
+## Operational runbook
+
+For execution details, mutable-truth behavior, drift detection, and reconciliation procedures, see:
+
+- [`RUNBOOK_thermostat_kwh_rollup.md`](RUNBOOK_thermostat_kwh_rollup.md)
