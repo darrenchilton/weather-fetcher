@@ -861,31 +861,40 @@ As of January 2026, {Usage Type} is fully automated and derived exclusively from
 
 {Therm SP Timeline (Derived)}
 
+This timeline is the authoritative per-zone representation of thermostat setpoint behavior over the day.
 
-This timeline is the authoritative per-zone representation of:
+For all derivations, the following threshold semantics apply:
 
-When a thermostat was ON (setpoint > 0)
+ON: any timeline segment with setpoint > 7 °C
 
-When it was OFF (setpoint = 0)
+OFF (low-hold / disabled): all timeline segments with setpoint ≤ 7 °C
+
+Zones missing from the timeline are treated as OFF for the entire day
 
 No additional derived fields (e.g., boolean “zone on/off” helpers) are required.
+All classification logic is computed directly from the timeline.
 
 ### 5.6.3 Classification Rules
 
-Usage Type is assigned once per WX record using the following deterministic rules:
+Usage Type is assigned once per WX record using the following deterministic rules, evaluated in order:
 
 Usage Type	Definition
-No Usage	All zones have setpoint = 0 for the entire day (system fully off)
-System Off	Alias of No Usage; typically used for summer / heating-disabled periods
-Enabled, No Heat Needed	At least one zone enabled (non-zero setpoint), but total kWh = 0 (warm day)
-Empty House	Master and MANC both OFF all day; at least one other zone may be enabled at setback
-Guests	Guest Room has setpoint > 0 at any point during the day
-Just DC	Master ON at any point; MANC OFF all day
-All	Master ON at any point AND MANC ON at any point
+System Off	All zones OFF all day (all setpoints ≤ 7 °C for the entire day)
+Enabled, No Heat Needed	At least one zone ON at some point (setpoint > 7 °C), but total kWh = 0 (warm day)
+Guests	Guest Room ON at any point during the day
+All	Master ON at any point and MANC ON at any point
+Just DC	Master ON at any point and MANC OFF all day
+Empty House	Master OFF all day and MANC OFF all day (other zones may be held at setback ≤ 7 °C)
 
-Edge cases (e.g., spouse visiting without child) are intentionally ignored.
+Notes:
+
+The 7 °C threshold represents frost-protection / unoccupied setback behavior.
+
+“OFF” does not require a zero setpoint; any value ≤ 7 °C is treated as OFF.
+
 Classification is based strictly on thermostat behavior, not inferred human presence.
 
+Edge cases (e.g., partial household occupancy) are intentionally ignored.
 ### 5.6.4 Temporal Semantics
 
 A “day” is defined as midnight to midnight in America/New_York
