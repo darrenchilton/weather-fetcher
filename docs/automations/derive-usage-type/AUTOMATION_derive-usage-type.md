@@ -65,10 +65,11 @@ So, for example:
 
 ### Authoritative ON/OFF source
 - `{Therm SP Timeline (Derived)}` JSON:
-  - A zone is ON if any segment has `sp > 0`.
-  - A zone is OFF-all-day if all segments have `sp == 0` OR the zone has no segments.
+  ON if any segment sp > 7
+  OFF-all-day if all segments sp <= 7 (or no segments)
   - Zones missing entirely from JSON are treated as OFF-all-day (conservative).
-
+  - “System Off” means all zones sp <= 7 all day
+  - 
 ### Rule precedence (in code order)
 1) **System Off**
    - All zones OFF-all-day
@@ -170,3 +171,4 @@ This aligns Usage Type derivation with the thermostat pipeline’s canonical dai
 
 ## 13. Change log
 - 2026-01-08: Initial documentation snapshot (from production automation + script)
+- 2026-01-21: Changed ON/OFF semantics from >0/==0 to >7/<=7; script now uses field-id update to avoid field name parse issues.
