@@ -99,6 +99,8 @@ the derived `(Reported)` fields defined below.
 ### Human-owned fields (must never be written by automation)
 - `Validation Notes (manual)` — multilineText
 - Manual KWH fields (examples): `Stairs KWH`, `LR KWH`, `Kitchen KWH`, etc. — number
+- `{Zone} KWH (Override)` — number  
+  - Manual correction field used to override automated or legacy values when required.
 - Any other manual note fields not explicitly producer-owned.
 
 ### Deprecated / legacy fields
