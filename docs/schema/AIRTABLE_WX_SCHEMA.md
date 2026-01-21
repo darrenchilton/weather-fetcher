@@ -14,10 +14,6 @@ This document pins the **contractual subset** required by automated producers. T
   - Daily identity key used by producers (see `DAILY_DATA_CONTRACT.md`).
   Note: `datetime` is the canonical daily identity field used by all thermostat-derived automations,
 even though it is stored as a date-only field.
-Consumers (charts, exports, rollups) MUST NOT read raw KWH input fields directly
-and MUST use `{Zone} KWH (Reported)` instead.
-
-
 
 ### Producer-owned fields — Visual Crossing weather ingestion
 These fields are written by weather ingestion and may be overwritten each run:
@@ -109,6 +105,12 @@ the derived `(Reported)` fields defined below.
 ### Deprecated / legacy fields
 - `Thermostat Settings (can delete after automations)` — multilineText
   - Contract status: deprecated (do not write; delete only after confirming no Airtable automations depend on it).
+
+### Reporting & consumption rules
+ 
+Consumers (charts, exports, rollups) MUST NOT read raw KWH input fields directly
+and MUST use `{Zone} KWH (Reported)` instead.
+
 
 ---
 
