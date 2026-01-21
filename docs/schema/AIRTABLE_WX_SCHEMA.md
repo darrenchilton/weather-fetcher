@@ -51,6 +51,9 @@ These fields are written by weather ingestion and may be overwritten each run:
 ### Producer-owned fields — Home Assistant thermostat rollup (update-only)
 - `Thermostat Settings (Auto)` — multilineText
 - `Data Source` — singleLineText (expected: `Auto`)
+- Note: `Data Source` reflects pipeline execution status; per-zone `{Zone} KWH (Source)`
+fields are authoritative for usage provenance.
+
 - Per-zone kWh (numbers):
   - `Stairs KWH (Auto)`, `LR KWH (Auto)`, `Kitchen KWH (Auto)`, `Up Bath KWH (Auto)`
   - `MANC KWH (Auto)`, `Master KWH (Auto)`, `Den KWH (Auto)`, `Guest Hall KWH (Auto)`
