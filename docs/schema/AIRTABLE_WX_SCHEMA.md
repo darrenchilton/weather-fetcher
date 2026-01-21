@@ -56,6 +56,38 @@ These fields are written by weather ingestion and may be overwritten each run:
   - `Stairs KWH (Auto)`, `LR KWH (Auto)`, `Kitchen KWH (Auto)`, `Up Bath KWH (Auto)`
   - `MANC KWH (Auto)`, `Master KWH (Auto)`, `Den KWH (Auto)`, `Guest Hall KWH (Auto)`
   - `Laundry KWH (Auto)`, `Guest Bath KWH (Auto)`, `Entryway KWH (Auto)`, `Guest Room KWH (Auto)`
+ 
+#### Per-zone KWH reporting model (authoritative)
+
+For each heating zone, multiple KWH fields may exist to support legacy data,
+automation-derived values, and manual correction. Reporting consumers MUST use
+the derived `(Reported)` fields defined below.
+
+**Input fields (precedence order):**
+1. `{Zone} KWH (Override)` — number  
+   - Human-entered correction used for outages, partial data, or known errors.
+   - Blank by default.
+2. `{Zone} KWH (Auto)` — number  
+   - Written by Home Assistant automation.
+3. `{Zone} KWH` — number  
+   - Legacy manual entry (historical fallback).
+
+**Derived fields (formula):**
+- `{Zone} KWH (Reported)` — number  
+  - Canonical value for all reporting, charts, exports, and rollups.
+  - Resolves precedence: Override → Auto → Manual.
+- `{Zone} KWH (Source)` — singleLineText (formula)  
+  - One of: `override`, `auto`, `manual`, `no usage`.
+
+**Semantics:**
+- `0` is a valid usage value and MUST be preserved.
+- Blank indicates absence of data.
+- If all three input fields are blank, `{Zone} KWH (Source)` = `no usage`.
+
+**Automation constraints:**
+- Automations MUST write only to `{Zone} KWH (Auto)`.
+- Automations MUST NOT write to `(Reported)`, `(Source)`, or `(Override)`.
+
 
 ### Producer-owned fields — Home Assistant indoor environment rollup (update-only)
 - `HA Indoor Humidity Stats (Auto)` — multilineText (JSON)
