@@ -81,8 +81,8 @@ the derived `(Reported)` fields defined below.
 **Semantics:**
 - `0` is a valid usage value and MUST be preserved.
 - Blank indicates absence of data.
-- If all three input fields are blank, `{Zone} KWH (Source)` = `no usage`.
-
+- If all three input fields are blank, {Zone} KWH (Source) = no usage
+  (meaning no usage recorded / no data present) 
 **Automation constraints:**
 - Automations MUST write only to `{Zone} KWH (Auto)`.
 - Automations MUST NOT write to `(Reported)`, `(Source)`, or `(Override)`.
