@@ -87,6 +87,7 @@ Writes: Therm SP derived JSON fields into WX
 03:30 — Derive Usage Type
 
 Reads: WX Therm SP Timeline (Derived) (authoritative ON/OFF)
+ON if sp > 7°C; OFF otherwise
 
 Reads: sum of * KWH (Auto) for “Enabled, No Heat Needed”
 
