@@ -857,44 +857,47 @@ It exists to help humans interpret daily records
 
 ### 5.6.2 Source of Truth
 
-As of January 2026, {Usage Type} is fully automated and derived exclusively from:
+As of January 2026, **{Usage Type}** is fully automated and derived exclusively from:
 
-{Therm SP Timeline (Derived)}
+**{Therm SP Timeline (Derived)}**
 
-This timeline is the authoritative per-zone representation of thermostat setpoint behavior over the day.
+This timeline is the authoritative per-zone representation of thermostat setpoint behavior over the full day.
 
-For all derivations, the following threshold semantics apply:
+For Usage Type derivation, setpoints are interpreted using **meaningful ON semantics**:
 
-ON: any timeline segment with setpoint > 7 °C
+- A zone is considered **ON** only if its cumulative time with setpoint **> 7 °C**
+  is **≥ 10 minutes** over the course of the day.
+- Short spikes above 7 °C (e.g., brief accidental adjustments) are ignored.
+- A zone is considered **OFF** if it does not meet the above ON criterion.
+- Zones missing from the timeline are treated as **OFF** for the entire day.
 
-OFF (low-hold / disabled): all timeline segments with setpoint ≤ 7 °C
-
-Zones missing from the timeline are treated as OFF for the entire day
-
-No additional derived fields (e.g., boolean “zone on/off” helpers) are required.
-All classification logic is computed directly from the timeline.
+This approach distinguishes frost-protection / low-hold behavior from
+meaningful heating intent, without relying on instantaneous state changes.
 
 ### 5.6.3 Classification Rules
 
-Usage Type is assigned once per WX record using the following deterministic rules, evaluated in order:
+**Usage Type** is assigned once per WX record using the following deterministic
+rules, evaluated in order. All references to ON/OFF use the “meaningful ON”
+definition described above.
 
-Usage Type	Definition
-System Off	All zones OFF all day (all setpoints ≤ 7 °C for the entire day)
-Enabled, No Heat Needed	At least one zone ON at some point (setpoint > 7 °C), but total kWh = 0 (warm day)
-Guests	Guest Room ON at any point during the day
-All	Master ON at any point and MANC ON at any point
-Just DC	Master ON at any point and MANC OFF all day
-Empty House	Master OFF all day and MANC OFF all day (other zones may be held at setback ≤ 7 °C)
+| Usage Type | Definition |
+|-----------|------------|
+| **System Off** | All zones OFF for the entire day (no zone meaningfully ON) |
+| **Enabled, No Heat Needed** | At least one zone meaningfully ON, but total kWh = 0 (warm day) |
+| **Guests** | Guest Room meaningfully ON at any point during the day |
+| **All** | Master meaningfully ON at any point **and** MANC meaningfully ON at any point |
+| **Just DC** | Master meaningfully ON at any point **and** MANC OFF all day |
+| **Empty House** | Master OFF all day **and** MANC OFF all day (other zones may be held at setback) |
 
 Notes:
 
-The 7 °C threshold represents frost-protection / unoccupied setback behavior.
+- The **7 °C threshold** represents frost-protection / unoccupied setback behavior.
+- “Meaningful ON” requires sustained intent (≥ 10 minutes above threshold),
+  not momentary state changes.
+- Classification is based strictly on thermostat behavior, not inferred human presence.
+- Edge cases (e.g., partial household occupancy) are intentionally ignored.
 
-“OFF” does not require a zero setpoint; any value ≤ 7 °C is treated as OFF.
 
-Classification is based strictly on thermostat behavior, not inferred human presence.
-
-Edge cases (e.g., partial household occupancy) are intentionally ignored.
 ### 5.6.4 Temporal Semantics
 
 A “day” is defined as midnight to midnight in America/New_York
@@ -1750,6 +1753,10 @@ Validation failure
 It is strictly an ingestion-completeness guard.
 
 2026-01-07 — Transient DNS / outbound connectivity interruption. Home Assistant logged repeated ClientConnectorDNSError (Met.no) and Network unreachable (HACS / HA alerts) errors following a container restart. Host networking and DNS remained functional; subsequent in-container testing confirmed outbound routing, DNS resolution, and HTTPS connectivity were healthy. Recorder database recovered cleanly (Ended unfinished session), no rollup failures were observed, and no Airtable ingestion gaps occurred. Errors ceased without configuration changes and did not recur after network stabilization. Treated as a transient DNS/upstream connectivity event during restart; no data loss.
+
+- 2026-01-22: Introduced “meaningful ON” semantics (≥ 10 minutes above 7 °C)
+  to ignore short setpoint spikes when deriving Usage Type.
+
 
 ---
 
