@@ -42,6 +42,66 @@ Key architectural principle:
 
 > **During the day, data exists only as telemetry in Home Assistant.**  
 > **A daily snapshot materializes that telemetry into a durable record.**
+>
+> 
+---
+
+## Recorder health + load checks (SQLite)
+
+### Quick health check (recorder writing)
+
+Run against the live DB read-only:
+
+```bash
+sqlite3 "file:/Users/plex/homeassistant/config/home-assistant_v2.db?mode=ro" \
+"SELECT
+  (SELECT datetime(MAX(time_fired_ts),'unixepoch','localtime') FROM events) AS last_event,
+  (SELECT datetime(MAX(last_updated_ts),'unixepoch','localtime') FROM states) AS last_state;"
+Expected: both timestamps are recent and advancing.
+
+Write load check (what’s generating churn)
+sqlite3 "file:/Users/plex/homeassistant/config/home-assistant_v2.db?mode=ro" \
+"SELECT substr(sm.entity_id,1,instr(sm.entity_id,'.')-1) AS domain,
+        COUNT(*) AS writes
+ FROM states s
+ JOIN states_meta sm ON s.metadata_id = sm.metadata_id
+ WHERE s.last_updated_ts > (strftime('%s','now') - 600)
+ GROUP BY domain
+ ORDER BY writes DESC;"
+Notes:
+
+sensor will dominate (expected).
+
+Small non-sensor counts around restarts are normal; do not treat as failure.
+
+Authoritative check: climate excluded since last HA start
+Use this to avoid false alarms when a 10-minute window spans a restart or pre-policy rows:
+
+sqlite3 "file:/Users/plex/homeassistant/config/home-assistant_v2.db?mode=ro" \
+"WITH start AS (
+   SELECT MAX(time_fired_ts) AS t0
+   FROM events e
+   JOIN event_types et ON e.event_type_id = et.event_type_id
+   WHERE et.event_type = 'homeassistant_start'
+ )
+ SELECT
+   (SELECT datetime(t0,'unixepoch','localtime') FROM start) AS ha_start_local,
+   (SELECT COUNT(*)
+    FROM states s
+    JOIN states_meta sm ON s.metadata_id = sm.metadata_id
+    WHERE substr(sm.entity_id,1,instr(sm.entity_id,'.')-1)='climate'
+      AND s.last_updated_ts >= (SELECT t0 FROM start)
+   ) AS climate_rows_since_start;"
+Expected: climate_rows_since_start = 0.
+
+Snapshot rule for integrity checks
+When investigating “malformed”/corruption errors, do not query the live DB while HA is running. Instead:
+
+stop HA,
+
+copy home-assistant_v2.db, -wal, -shm as a matched set,
+
+inspect the snapshot read-only.
 
 ### 2.1 Deployment Topology & File Locations
 
