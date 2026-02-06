@@ -3,6 +3,84 @@
 ## Purpose
 Define HA-side inputs relied on by update-only rollups into Airtable WX.
 
+## Recorder policy (contract)
+
+As of **2026-02-05**, Home Assistant recorder is intentionally scoped to reduce SQLite write load and keep the downstream Airtable rollups stable.
+
+### Recorder configuration (authoritative)
+
+```yaml
+recorder:
+  purge_keep_days: 7
+  commit_interval: 60
+
+  exclude:
+    domains:
+      - climate
+
+  include:
+    domains:
+      - sensor
+
+    entity_globs:
+      - sensor.*_current_power
+      - sensor.*_current_temperature
+      - sensor.*_current_humidity
+
+What is guaranteed to be recorded
+
+Only these high-value telemetry sensors are guaranteed to be recorded long-term:
+
+sensor.*_current_power
+
+sensor.*_current_temperature
+
+sensor.*_current_humidity
+
+What is intentionally not recorded
+
+climate.* is explicitly excluded. (The system relies on sensor telemetry; climate history is not required for energy rollups.)
+
+Recorder validation (authoritative checks)
+
+Last event/state timestamps (recorder alive):
+
+SELECT
+  (SELECT datetime(MAX(time_fired_ts),'unixepoch','localtime') FROM events) AS last_event,
+  (SELECT datetime(MAX(last_updated_ts),'unixepoch','localtime') FROM states) AS last_state;
+
+
+Domain write load in last 10 minutes (diagnostic):
+
+SELECT substr(sm.entity_id,1,instr(sm.entity_id,'.')-1) AS domain,
+       COUNT(*) AS writes
+FROM states s
+JOIN states_meta sm ON s.metadata_id = sm.metadata_id
+WHERE s.last_updated_ts > (strftime('%s','now') - 600)
+GROUP BY domain
+ORDER BY writes DESC;
+
+
+Authoritative climate exclusion check (since last HA start):
+
+WITH start AS (
+  SELECT MAX(time_fired_ts) AS t0
+  FROM events e
+  JOIN event_types et ON e.event_type_id = et.event_type_id
+  WHERE et.event_type = 'homeassistant_start'
+)
+SELECT
+  (SELECT datetime(t0,'unixepoch','localtime') FROM start) AS ha_start_local,
+  (SELECT COUNT(*)
+   FROM states s
+   JOIN states_meta sm ON s.metadata_id = sm.metadata_id
+   WHERE substr(sm.entity_id,1,instr(sm.entity_id,'.')-1)='climate'
+     AND s.last_updated_ts >= (SELECT t0 FROM start)
+  ) AS climate_rows_since_start;
+
+
+Expected: climate_rows_since_start = 0.
+
 ---
 
 ## Environment assumptions
