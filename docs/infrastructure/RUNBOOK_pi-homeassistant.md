@@ -88,7 +88,7 @@ Check all availability topics:
 
 ## Airtable Integration
 
-Token:       REDACTED
+Token: <see Airtable account settings>
 Base ID:      appoTbBi5JDuMvJ9D
 Tables:
   Setpoints (thermostat events): tblvd80WJDrMLCUfm
